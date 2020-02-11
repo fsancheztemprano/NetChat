@@ -1,11 +1,15 @@
 plugins {
     id 'java'
+    id 'application'
+    id 'idea'
 }
 
-group 'org.example'
-version '1.0-SNAPSHOT'
+group 'dev.example'
+version 'v0.0.1-snap'
 
 sourceCompatibility = 1.8
+
+mainClassName = "App"
 
 repositories {
     mavenCentral()
@@ -13,4 +17,8 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    compile 'com.google.flogger:flogger:0.4'
+    compile 'com.google.flogger:flogger-system-backend:0.4'
+
 }
