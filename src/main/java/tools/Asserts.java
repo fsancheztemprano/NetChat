@@ -38,4 +38,12 @@ public abstract class Asserts {
             return false;
         }
     }
+
+    public static boolean isValidPort(String string) {
+        return isInteger(string) && isValidPort(Integer.parseInt(string));
+    }
+
+    public static boolean isValidPort(int port) {
+        return port < 65536 && port > 1024;
+    }
 }

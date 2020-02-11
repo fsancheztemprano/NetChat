@@ -9,24 +9,24 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="psp.c_calc2.ui.CalculadoraControl">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="psp.c_calc2.ui.ChatControl">
    <children>
       <SplitPane dividerPositions="0.5" VBox.vgrow="ALWAYS">
          <items>
-            <TextArea prefHeight="200.0" prefWidth="200.0" />
-            <ListView prefHeight="200.0" prefWidth="200.0" />
+            <TextArea fx:id="areaChatLog" prefHeight="200.0" prefWidth="200.0" />
+            <ListView fx:id="listConectedPeers" prefHeight="200.0" prefWidth="200.0" />
          </items>
       </SplitPane>
       <HBox alignment="CENTER_LEFT" spacing="10.0">
          <children>
             <Circle fx:id="circleClientStatus" fill="#ff1f1f" radius="10.0" stroke="BLACK" strokeType="INSIDE" />
-            <TextField layoutX="10.0" layoutY="10.0" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-            <Button layoutX="159.0" layoutY="10.0" mnemonicParsing="false" text="Enviar" />
+            <TextField fx:id="fieldMessageDraft" layoutX="10.0" layoutY="10.0" maxWidth="1.7976931348623157E308" onAction="#sendMessageAction" HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnSend" layoutX="159.0" layoutY="10.0" mnemonicParsing="false" onAction="#sendMessageAction" text="Enviar" />
          </children>
       </HBox>
       <HBox alignment="CENTER_RIGHT" spacing="10.0">
          <children>
-            <Button layoutX="371.0" layoutY="10.0" mnemonicParsing="false" text="Cerrar" />
+            <Button fx:id="btnExit" layoutX="371.0" layoutY="10.0" mnemonicParsing="false" onAction="#btnExitAction" text="Cerrar" />
          </children>
       </HBox>
    </children>
