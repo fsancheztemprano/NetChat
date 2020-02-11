@@ -1,7 +1,6 @@
 package chat;
 
 import chat.model.IServerStatusListener;
-import chat.model.IStatusListener;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -77,7 +76,7 @@ public class Server {
 
     private void log(String msg) {
         System.out.println(msg);
-        notifyLogChangeToListener(msg);
+        notifyLogOutput(msg);
     }
 
     public void startServer() {
@@ -96,7 +95,7 @@ public class Server {
                 serverThread = null;
             }
         }
-        notifyServerStatusChangeToListeners();
+        notifyServerStatus(isServerAlive());
     }
 
     public boolean isServerAlive() {
@@ -113,15 +112,15 @@ public class Server {
                     : Optional.empty());
     }
 
-    private void notifyLogChangeToListener(String msg) {
+    private void notifyLogOutput(String msg) {
         listener.ifPresent(listener -> listener.onLogOutput(msg));
     }
 
-    private void notifyServerStatusChangeToListeners() {
-        listener.ifPresent(IStatusListener::onStatusChanged);
+    private void notifyServerStatus(boolean active) {
+        listener.ifPresent(listener -> listener.onStatusChanged(active));
     }
 
-    private void notifyActiveClientsToListeners(int activeClients) {
+    private void notifyActiveClients(int activeClients) {
         listener.ifPresent(listener -> listener.onActiveClientsChange(activeClients));
     }
 
@@ -145,8 +144,8 @@ public class Server {
                 log("Realizando el bind: " + inetSocketAddress.getAddress() + ":" + inetSocketAddress.getPort());
                 serverSocket.bind(inetSocketAddress);
                 setActive(true);
-                notifyServerStatusChangeToListeners();
-                notifyActiveClientsToListeners(activeClients);
+                notifyServerStatus(active);
+                notifyActiveClients(activeClients);
 
                 log("Aceptando conexiones: " + serverSocket.getLocalSocketAddress().toString());
                 while (isActive()) {
@@ -183,7 +182,7 @@ public class Server {
                 ioe.printStackTrace();
             } finally {
                 setActive(false);
-                notifyServerStatusChangeToListeners();
+                notifyServerStatus(isServerAlive());
                 log("Server Thread Terminado");
             }
             pool.shutdown(); // Disable new tasks from being submitted
