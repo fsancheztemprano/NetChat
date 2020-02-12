@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
@@ -19,15 +20,21 @@
       </SplitPane>
       <HBox alignment="CENTER_LEFT" spacing="10.0">
          <children>
-            <Circle fx:id="circleClientStatus" fill="#ff1f1f" radius="10.0" stroke="BLACK" strokeType="INSIDE" />
             <TextField fx:id="fieldMessageDraft" layoutX="10.0" layoutY="10.0" maxWidth="1.7976931348623157E308" onAction="#sendMessageAction" HBox.hgrow="ALWAYS" />
             <Button fx:id="btnSend" layoutX="159.0" layoutY="10.0" mnemonicParsing="false" onAction="#sendMessageAction" text="Enviar" />
          </children>
       </HBox>
       <HBox alignment="CENTER_RIGHT" spacing="10.0">
-         <children>
-            <Button fx:id="btnExit" layoutX="371.0" layoutY="10.0" mnemonicParsing="false" onAction="#btnExitAction" text="Cerrar" />
-         </children>
+        <children>
+          <HBox alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="ALWAYS">
+            <children>
+              <Circle fx:id="circleClientStatus" fill="#ff1f1f" radius="10.0" stroke="BLACK" strokeType="INSIDE" />
+              <Label text="User:" />
+              <Label layoutX="391.0" layoutY="12.0" text="&lt;user&gt;" />
+            </children>
+          </HBox>
+          <Button fx:id="btnExit" layoutX="371.0" layoutY="10.0" mnemonicParsing="false" onAction="#btnExitAction" text="Cerrar" />
+        </children>
       </HBox>
    </children>
    <padding>

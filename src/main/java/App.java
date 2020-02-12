@@ -1,4 +1,4 @@
-import chat.Server;
+import chat.core.Server;
 import java.net.UnknownHostException;
 
 public class App {

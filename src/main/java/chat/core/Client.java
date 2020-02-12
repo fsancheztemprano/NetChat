@@ -1,4 +1,4 @@
-package chat;
+package chat.core;
 
 import chat.model.IServerStatusListener;
 import java.util.Optional;

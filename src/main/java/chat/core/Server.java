@@ -1,5 +1,7 @@
-package chat;
+package chat.core;
 
+import chat.model.ActivableThread;
+import chat.model.ChatPacket;
 import chat.model.IServerStatusListener;
 import java.io.IOException;
 import java.net.BindException;
@@ -10,14 +12,10 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class Server {
-
-    public static String DEFAULT_SERVER_HOSTNAME = "localhost";
-    public static int DEFAULT_SERVER_PORT = 5555;
 
     private static Server instance;
 
@@ -36,19 +34,10 @@ public class Server {
     }
 
 
-    private int maxActiveClients = 4;
-    //        private int maxActiveClients = Runtime.getRuntime().availableProcessors();
-    private String hostname = DEFAULT_SERVER_HOSTNAME;
-    private int port = DEFAULT_SERVER_PORT;
+    private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
+    private int port = Globals.DEFAULT_SERVER_PORT;
     private ServerThread serverThread;
 
-    public int getMaxActiveClients() {
-        return maxActiveClients;
-    }
-
-    public void setMaxActiveClients(int maxActiveClients) {
-        this.maxActiveClients = maxActiveClients;
-    }
 
     public String getHostname() {
         return hostname;
@@ -70,10 +59,6 @@ public class Server {
         return serverThread;
     }
 
-    public void setServerThread(ServerThread serverThread) {
-        this.serverThread = serverThread;
-    }
-
     private void log(String msg) {
         System.out.println(msg);
         notifyLogOutput(msg);
@@ -88,6 +73,7 @@ public class Server {
     public void stopServer() {
         if (serverThread != null) {
             try {
+                serverThread.setActive(false);
                 serverThread.getServerSocket().close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -124,18 +110,31 @@ public class Server {
         listener.ifPresent(listener -> listener.onActiveClientsChange(activeClients));
     }
 
-    private class ServerThread extends Thread {
 
-        private boolean active = false;
+    protected class ServerThread extends ActivableThread {
+
         private int activeClients = 0;
         private ServerSocket serverSocket = null;
         private InetSocketAddress inetSocketAddress;
-        private ExecutorService pool = Executors.newFixedThreadPool(maxActiveClients);
+
+        private BlockingQueue<WorkerManager> workerList = new ArrayBlockingQueue<>(Globals.MAX_ACTIVE_CLIENTS);
+
+        private BlockingQueue<ChatPacket> serverCommandQueue;
+        private ServerCommandProcessor inboundCommandProcessor;
+
+        public ServerThread() {
+            serverCommandQueue      = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+            inboundCommandProcessor = new ServerCommandProcessor(serverCommandQueue);
+        }
+
+        public ServerSocket getServerSocket() {
+            return serverSocket;
+        }
 
         @Override
         public void run() {
             try {
-                log("Creando socket servidor. Clientes Max: " + maxActiveClients);
+                log("Creando socket servidor. Clientes Max: " + Globals.MAX_ACTIVE_CLIENTS);
                 serverSocket      = new ServerSocket();
                 inetSocketAddress = (hostname.length() > 6 && InetAddress.getByName(hostname).isReachable(100))
                                     ? new InetSocketAddress(hostname, port)
@@ -143,6 +142,7 @@ public class Server {
 
                 log("Realizando el bind: " + inetSocketAddress.getAddress() + ":" + inetSocketAddress.getPort());
                 serverSocket.bind(inetSocketAddress);
+                inboundCommandProcessor.start();
                 setActive(true);
                 notifyServerStatus(active);
                 notifyActiveClients(activeClients);
@@ -151,8 +151,10 @@ public class Server {
                 while (isActive()) {
                     Socket clientSocket = serverSocket.accept();
                     clientSocket.setKeepAlive(true);
-//                    WorkerThread workerThread = new WorkerThread(clientSocket);
-//                    pool.execute(workerThread);
+                    log("Conexion entrante: " + clientSocket.getRemoteSocketAddress());
+                    WorkerManager workerManager = new WorkerManager(clientSocket, serverCommandQueue);
+                    workerManager.startWorker();
+                    workerList.add(workerManager);
                 }
             } catch (BindException be) {
                 log("Unbindable Socket Address: " + inetSocketAddress);
@@ -167,11 +169,23 @@ public class Server {
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                killServerThread();
+                killServer();
             }
         }
 
-        public synchronized void killServerThread() {
+        public synchronized void killServer() {
+            killServerSocket();
+            killAllClients();
+            killCommandProcessor();
+        }
+
+        private void killAllClients() {
+            workerList.forEach(WorkerManager::stopWorker);
+            workerList.clear();
+        }
+
+
+        private void killServerSocket() {
             log("Cerrando el socket servidor");
             try {
                 if (serverSocket != null) {
@@ -185,36 +199,22 @@ public class Server {
                 notifyServerStatus(isServerAlive());
                 log("Server Thread Terminado");
             }
-            pool.shutdown(); // Disable new tasks from being submitted
+        }
+
+        private void killCommandProcessor() {
             try {
-                // Wait a while for existing tasks to terminate
-                if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
-                    pool.shutdownNow(); // Cancel currently executing tasks
-                    // Wait a while for tasks to respond to being cancelled
-                    if (!pool.awaitTermination(60, TimeUnit.SECONDS))
-                        System.err.println("Pool did not terminate");
-                }
-            } catch (InterruptedException ie) {
-                // (Re-)Cancel if current thread also interrupted
-                pool.shutdownNow();
+                if (inboundCommandProcessor != null)
+                    inboundCommandProcessor.interrupt();
+                if (serverCommandQueue != null)
+                    serverCommandQueue.clear();
+            } catch (Exception e) {
+                e.printStackTrace();
             } finally {
-                // Preserve interrupt status
-                Thread.currentThread().interrupt();
+                inboundCommandProcessor = null;
             }
         }
 
-        public boolean isActive() {
-            return active;
-        }
 
-        public void setActive(boolean active) {
-            this.active = active;
-        }
-
-        public ServerSocket getServerSocket() {
-            return serverSocket;
-        }
     }
-
 
 }
