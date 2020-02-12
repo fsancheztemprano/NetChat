@@ -155,7 +155,8 @@ public class Server {
                     log("Conexion entrante: " + clientSocket.getRemoteSocketAddress());
                     WorkerManager workerManager = new WorkerManager(clientSocket, serverCommandQueue);
                     workerManager.startWorker();
-                    workerList.add(workerManager);
+                    if (!workerList.offer(workerManager))
+                        log("Conexion entrante rechazada, MAX_CLIENTS");
                 }
             } catch (BindException be) {
                 log("Unbindable Socket Address: " + inetSocketAddress);

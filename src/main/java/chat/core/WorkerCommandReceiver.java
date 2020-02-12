@@ -13,31 +13,36 @@ public class WorkerCommandReceiver extends ActivableThread {
 
     public BlockingQueue<AppPacket> commandQueue;
 
-    private ObjectInputStream inputStream;
+    private InputStream inputStream;
     private IHeartBeatTimeHolder heartBeatTimeHolder;
 
-    public WorkerCommandReceiver(BlockingQueue<AppPacket> commandQueue, InputStream inputStream, IHeartBeatTimeHolder heartBeatTimeHolder) throws IOException {
-        this.commandQueue        = commandQueue;
-        this.inputStream         = new ObjectInputStream(new BufferedInputStream(inputStream));
+    public WorkerCommandReceiver(BlockingQueue<AppPacket> serverCommandQueue, InputStream inputStream, IHeartBeatTimeHolder heartBeatTimeHolder) throws IOException {
+        this.commandQueue        = serverCommandQueue;
+        this.inputStream         = inputStream;
         this.heartBeatTimeHolder = heartBeatTimeHolder;
     }
 
     @Override
     public void run() {
         setActive(true);
-        while (isActive()) {
-            try {
-                AppPacket receivedMessage = (AppPacket) inputStream.readObject();
-                heartBeatTimeHolder.updateHeartBeatTime();
+        try {
+            ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(inputStream));
+            while (isActive()) {
+                try {
+                    AppPacket receivedMessage = (AppPacket) objectInputStream.readObject();
+                    heartBeatTimeHolder.updateHeartBeatTime();
 
-                commandQueue.put(receivedMessage);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                    commandQueue.put(receivedMessage);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

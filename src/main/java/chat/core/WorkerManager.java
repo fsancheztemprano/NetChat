@@ -3,6 +3,7 @@ package chat.core;
 import chat.model.AppPacket;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -18,18 +19,15 @@ public class WorkerManager {
     private WorkerCommandReceiver workerCommandReceiver;
     private WorkerCommandTransmitter workerCommandTransmitter;
 
-    private BlockingQueue<AppPacket> outBoundCommandQueue;
+    private BlockingQueue<AppPacket> workerCommandQueue;
 
 
     public WorkerManager(Socket workerSocket, BlockingQueue<AppPacket> serverCommandQueue) throws IOException {
-        this.workerSocket    = workerSocket;
-        outBoundCommandQueue = new ArrayBlockingQueue<>(63);
-
-        workerHeartbeatDaemon = new WorkerHeartbeatDaemon(outBoundCommandQueue, workerSocket.getLocalSocketAddress());
-
+        this.workerSocket        = workerSocket;
+        workerCommandQueue       = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+        workerHeartbeatDaemon    = new WorkerHeartbeatDaemon(this);
         workerCommandReceiver    = new WorkerCommandReceiver(serverCommandQueue, workerSocket.getInputStream(), workerHeartbeatDaemon);
-        workerCommandTransmitter = new WorkerCommandTransmitter(outBoundCommandQueue, workerSocket.getOutputStream(), workerHeartbeatDaemon);
-
+        workerCommandTransmitter = new WorkerCommandTransmitter(workerCommandQueue, workerSocket.getOutputStream(), workerHeartbeatDaemon);
     }
 
 
@@ -74,10 +72,18 @@ public class WorkerManager {
 
     public void queueTransmission(AppPacket appPacket) {
         try {
-            outBoundCommandQueue.put(appPacket);
+            workerCommandQueue.put(appPacket);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
+    }
+
+    BlockingQueue<AppPacket> getWorkerCommandQueue() {
+        return workerCommandQueue;
+    }
+
+    SocketAddress getLocalSocketAddress() {
+        return workerSocket.getLocalSocketAddress();
     }
 }

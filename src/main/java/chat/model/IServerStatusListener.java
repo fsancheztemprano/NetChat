@@ -2,5 +2,5 @@ package chat.model;
 
 public interface IServerStatusListener extends IStatusListener {
 
-     void onActiveClientsChange(int activeClients);
+    void onActiveClientsChange(int activeClients);
 }

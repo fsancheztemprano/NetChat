@@ -11,30 +11,36 @@ import java.util.concurrent.BlockingQueue;
 
 public class WorkerCommandTransmitter extends ActivableThread {
 
-    private BlockingQueue<AppPacket> workerOutBoundCommandQueue;
-    private ObjectOutputStream outputStream;
+    private BlockingQueue<AppPacket> workerCommandQueue;
+    private OutputStream outputStream;
     private IHeartBeatTimeHolder heartBeatTimeHolder;
 
-    public WorkerCommandTransmitter(BlockingQueue<AppPacket> workerOutBoundCommandQueue, OutputStream outputStream, IHeartBeatTimeHolder heartBeatTimeHolder) throws IOException {
-        this.workerOutBoundCommandQueue = workerOutBoundCommandQueue;
-        this.outputStream               = new ObjectOutputStream(new BufferedOutputStream(outputStream));
-        this.heartBeatTimeHolder        = heartBeatTimeHolder;
+    public WorkerCommandTransmitter(BlockingQueue<AppPacket> workerCommandQueue, OutputStream outputStream, IHeartBeatTimeHolder heartBeatTimeHolder) {
+        this.workerCommandQueue  = workerCommandQueue;
+        this.outputStream        = outputStream;
+        this.heartBeatTimeHolder = heartBeatTimeHolder;
     }
 
     @Override
     public void run() {
         setActive(true);
-        while (isActive()) {
-            try {
-                AppPacket appPacket = this.workerOutBoundCommandQueue.take();
-                outputStream.writeObject(appPacket);
-                outputStream.flush();
-                heartBeatTimeHolder.updateHeartBeatTime();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+        try {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(outputStream));
+
+            while (isActive()) {
+                try {
+                    AppPacket appPacket = this.workerCommandQueue.take();
+                    objectOutputStream.writeObject(appPacket);
+                    objectOutputStream.flush();
+                    heartBeatTimeHolder.updateHeartBeatTime();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

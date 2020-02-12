@@ -21,8 +21,8 @@ public class Client {
         return instance;
     }
 
-    private String serverHostname = Server.DEFAULT_SERVER_HOSTNAME;
-    private int serverPort = Server.DEFAULT_SERVER_PORT;
+    private String serverHostname = Globals.DEFAULT_SERVER_HOSTNAME;
+    private int serverPort = Globals.DEFAULT_SERVER_PORT;
     private ClientThreadManager clientThreadManager;
 
 

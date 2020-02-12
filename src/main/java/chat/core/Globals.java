@@ -9,4 +9,5 @@ public interface Globals {
     String DEFAULT_SERVER_HOSTNAME = "localhost";
 
 
+    long WORKER_TIMEOUT = 120;
 }
