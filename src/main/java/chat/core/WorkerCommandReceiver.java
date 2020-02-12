@@ -1,7 +1,7 @@
 package chat.core;
 
 import chat.model.ActivableThread;
-import chat.model.ChatPacket;
+import chat.model.AppPacket;
 import chat.model.IHeartBeatTimeHolder;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -11,12 +11,12 @@ import java.util.concurrent.BlockingQueue;
 
 public class WorkerCommandReceiver extends ActivableThread {
 
-    public BlockingQueue<ChatPacket> commandQueue;
+    public BlockingQueue<AppPacket> commandQueue;
 
     private ObjectInputStream inputStream;
     private IHeartBeatTimeHolder heartBeatTimeHolder;
 
-    public WorkerCommandReceiver(BlockingQueue<ChatPacket> commandQueue, InputStream inputStream, IHeartBeatTimeHolder heartBeatTimeHolder) throws IOException {
+    public WorkerCommandReceiver(BlockingQueue<AppPacket> commandQueue, InputStream inputStream, IHeartBeatTimeHolder heartBeatTimeHolder) throws IOException {
         this.commandQueue        = commandQueue;
         this.inputStream         = new ObjectInputStream(new BufferedInputStream(inputStream));
         this.heartBeatTimeHolder = heartBeatTimeHolder;
@@ -27,7 +27,7 @@ public class WorkerCommandReceiver extends ActivableThread {
         setActive(true);
         while (isActive()) {
             try {
-                ChatPacket receivedMessage = (ChatPacket) inputStream.readObject();
+                AppPacket receivedMessage = (AppPacket) inputStream.readObject();
                 heartBeatTimeHolder.updateHeartBeatTime();
 
                 commandQueue.put(receivedMessage);

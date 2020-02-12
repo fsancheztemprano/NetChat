@@ -1,7 +1,7 @@
 package chat.core;
 
 import chat.model.ActivableThread;
-import chat.model.ChatPacket;
+import chat.model.AppPacket;
 import chat.model.IServerStatusListener;
 import java.io.IOException;
 import java.net.BindException;
@@ -117,14 +117,15 @@ public class Server {
         private ServerSocket serverSocket = null;
         private InetSocketAddress inetSocketAddress;
 
-        private BlockingQueue<WorkerManager> workerList = new ArrayBlockingQueue<>(Globals.MAX_ACTIVE_CLIENTS);
+        private BlockingQueue<WorkerManager> workerList;
 
-        private BlockingQueue<ChatPacket> serverCommandQueue;
-        private ServerCommandProcessor inboundCommandProcessor;
+        private BlockingQueue<AppPacket> serverCommandQueue;
+        private ServerCommandProcessor serverCommandProcessor;
 
         public ServerThread() {
-            serverCommandQueue      = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-            inboundCommandProcessor = new ServerCommandProcessor(serverCommandQueue);
+            workerList             = new ArrayBlockingQueue<>(Globals.MAX_ACTIVE_CLIENTS);
+            serverCommandQueue     = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+            serverCommandProcessor = new ServerCommandProcessor(serverCommandQueue, workerList);
         }
 
         public ServerSocket getServerSocket() {
@@ -142,7 +143,7 @@ public class Server {
 
                 log("Realizando el bind: " + inetSocketAddress.getAddress() + ":" + inetSocketAddress.getPort());
                 serverSocket.bind(inetSocketAddress);
-                inboundCommandProcessor.start();
+                serverCommandProcessor.start();
                 setActive(true);
                 notifyServerStatus(active);
                 notifyActiveClients(activeClients);
@@ -203,14 +204,14 @@ public class Server {
 
         private void killCommandProcessor() {
             try {
-                if (inboundCommandProcessor != null)
-                    inboundCommandProcessor.interrupt();
+                if (serverCommandProcessor != null)
+                    serverCommandProcessor.interrupt();
                 if (serverCommandQueue != null)
                     serverCommandQueue.clear();
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                inboundCommandProcessor = null;
+                serverCommandProcessor = null;
             }
         }
 

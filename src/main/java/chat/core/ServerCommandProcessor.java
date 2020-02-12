@@ -1,15 +1,17 @@
 package chat.core;
 
 import chat.model.ActivableThread;
-import chat.model.ChatPacket;
+import chat.model.AppPacket;
 import java.util.concurrent.BlockingQueue;
 
 public class ServerCommandProcessor extends ActivableThread {
 
-    private BlockingQueue<ChatPacket> serverCommandQueue;
+    private BlockingQueue<AppPacket> serverCommandQueue;
+    private BlockingQueue<WorkerManager> workerList;
 
-    public ServerCommandProcessor(BlockingQueue<ChatPacket> serverCommandQueue) {
+    public ServerCommandProcessor(BlockingQueue<AppPacket> serverCommandQueue, BlockingQueue<WorkerManager> workerList) {
         this.serverCommandQueue = serverCommandQueue;
+        this.workerList         = workerList;
     }
 
     @Override
@@ -17,37 +19,37 @@ public class ServerCommandProcessor extends ActivableThread {
         setActive(true);
         while (isActive()) {
             try {
-                ChatPacket chatPacket = this.serverCommandQueue.take();
-                processMessage(chatPacket);
+                AppPacket appPacket = this.serverCommandQueue.take();
+                processMessage(appPacket);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void processMessage(ChatPacket chatPacket) {
-        if (chatPacket == null || chatPacket.getUsername() == null || chatPacket.getOriginSocketAddress() == null)
+    private void processMessage(AppPacket appPacket) {
+        if (appPacket == null || appPacket.getUsername() == null || appPacket.getOriginSocketAddress() == null)
             return;
 
-        switch (chatPacket.getSignal()) {
+        switch (appPacket.getSignal()) {
             case CLIENT_JOIN:
-                ChatService.getInstance().userJoin(chatPacket.getUsername());
-
+                ChatService.getInstance().userJoin(appPacket.getUsername());
+                forwardToAll(appPacket);
                 break;
             case NEW_MESSAGE:
                 ChatService.getInstance().newMessage(String.format("%s: %s",
-                                                                   chatPacket.getUsername(),
-                                                                   chatPacket.getMessage()));
-
+                                                                   appPacket.getUsername(),
+                                                                   appPacket.getMessage()));
+                forwardToAll(appPacket);
                 break;
             case CLIENT_QUIT:
-                ChatService.getInstance().userQuit(chatPacket.getUsername());
-
+                ChatService.getInstance().userQuit(appPacket.getUsername());
+                forwardToAll(appPacket);
                 break;
-            case HEARTBEAT:
-
-                break;
-
         }
+    }
+
+    private void forwardToAll(AppPacket appPacket) {
+        workerList.forEach(worker -> worker.queueTransmission(appPacket));
     }
 }

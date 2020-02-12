@@ -4,14 +4,14 @@ import java.io.Serializable;
 import java.net.SocketAddress;
 import java.util.Objects;
 
-public class ChatPacket implements Serializable {
+public class AppPacket implements Serializable {
 
     private ProtocolSignal signal;
     private SocketAddress originSocketAddress;
     private String username;
     private String message;
 
-    public ChatPacket(ProtocolSignal signal, SocketAddress originSocketAddress, String username, String message) {
+    public AppPacket(ProtocolSignal signal, SocketAddress originSocketAddress, String username, String message) {
         this.signal              = signal;
         this.originSocketAddress = originSocketAddress;
         this.username            = username;
@@ -56,7 +56,7 @@ public class ChatPacket implements Serializable {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        ChatPacket that = (ChatPacket) o;
+        AppPacket that = (AppPacket) o;
         return signal == that.signal &&
                Objects.equals(originSocketAddress, that.originSocketAddress) &&
                Objects.equals(username, that.username) &&

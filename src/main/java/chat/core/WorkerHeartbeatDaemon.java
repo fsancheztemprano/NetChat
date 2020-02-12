@@ -1,7 +1,7 @@
 package chat.core;
 
 import chat.model.ActivableThread;
-import chat.model.ChatPacket;
+import chat.model.AppPacket;
 import chat.model.IHeartBeatTimeHolder;
 import chat.model.ProtocolSignal;
 import java.net.SocketAddress;
@@ -10,14 +10,14 @@ import java.util.concurrent.BlockingQueue;
 
 public class WorkerHeartbeatDaemon extends ActivableThread implements IHeartBeatTimeHolder {
 
-    private final BlockingQueue<ChatPacket> outBoundCommandQueue;
-    private final ChatPacket heartbeatPacket;
+    private final BlockingQueue<AppPacket> outBoundCommandQueue;
+    private final AppPacket heartbeatPacket;
 
     private volatile LocalDateTime lastHeartbeat;
 
-    public WorkerHeartbeatDaemon(BlockingQueue<ChatPacket> outBoundCommandQueue, SocketAddress localSocketAddress) {
+    public WorkerHeartbeatDaemon(BlockingQueue<AppPacket> outBoundCommandQueue, SocketAddress localSocketAddress) {
         this.outBoundCommandQueue = outBoundCommandQueue;
-        heartbeatPacket           = new ChatPacket(ProtocolSignal.HEARTBEAT, localSocketAddress, "kokoro", "heartbeat");
+        heartbeatPacket           = new AppPacket(ProtocolSignal.HEARTBEAT, localSocketAddress, "kokoro", "heartbeat");
     }
 
     @Override

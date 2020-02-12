@@ -1,6 +1,6 @@
 package chat.core;
 
-import chat.model.ChatPacket;
+import chat.model.AppPacket;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -18,10 +18,10 @@ public class WorkerManager {
     private WorkerCommandReceiver workerCommandReceiver;
     private WorkerCommandTransmitter workerCommandTransmitter;
 
-    private BlockingQueue<ChatPacket> outBoundCommandQueue;
+    private BlockingQueue<AppPacket> outBoundCommandQueue;
 
 
-    public WorkerManager(Socket workerSocket, BlockingQueue<ChatPacket> serverCommandQueue) throws IOException {
+    public WorkerManager(Socket workerSocket, BlockingQueue<AppPacket> serverCommandQueue) throws IOException {
         this.workerSocket    = workerSocket;
         outBoundCommandQueue = new ArrayBlockingQueue<>(63);
 
@@ -70,5 +70,14 @@ public class WorkerManager {
                 //TODO remove from workerList
             }
         }
+    }
+
+    public void queueTransmission(AppPacket appPacket) {
+        try {
+            outBoundCommandQueue.put(appPacket);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 }
