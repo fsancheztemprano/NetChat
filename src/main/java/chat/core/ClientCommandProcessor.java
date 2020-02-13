@@ -1,33 +1,16 @@
 package chat.core;
 
-import chat.model.ActivableThread;
 import chat.model.AppPacket;
-import java.util.concurrent.BlockingQueue;
 
-public class ClientCommandProcessor extends ActivableThread {
+public class ClientCommandProcessor extends AbstractCommandProcessor {
 
-    private BlockingQueue<AppPacket> clientCommandQueue;
 
-    public ClientCommandProcessor(BlockingQueue<AppPacket> clientCommandQueue) {
-        this.clientCommandQueue = clientCommandQueue;
+    public ClientCommandProcessor(ClientSocketManager clientManager) {
+        super(clientManager, clientManager.getInboundCommandQueue());
     }
 
     @Override
-    public void run() {
-        setActive(true);
-        while (isActive()) {
-            try {
-                AppPacket appPacket = this.clientCommandQueue.take();
-                processCommand(appPacket);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void processCommand(AppPacket appPacket) {
+    protected void processCommand(AppPacket appPacket) {
         if (appPacket == null || appPacket.getUsername() == null || appPacket.getOriginSocketAddress() == null)
             return;
 

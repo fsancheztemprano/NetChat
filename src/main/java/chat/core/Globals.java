@@ -14,4 +14,6 @@ public interface Globals {
 
     long HEARTBEAT_INTERVAL = 500;//MS
     int HEARTBEAT_DELAY = 3;//in seconds
+    long TRANSMITTER_THREAD_TIMEOUT = 1;//seconds
+    long PROCESSORS_THREAD_TIMEOUT = 1;//seconds
 }

@@ -19,23 +19,23 @@ public class Server {
     }
 
 
-    private volatile ServerThread serverThread;
+    private volatile ServerManager serverManager;
 
-    public ServerThread getServerThread() {
-        return serverThread;
+    public ServerManager getServerManager() {
+        return serverManager;
     }
 
     public void startServer() {
         stopServer();
-        serverThread = new ServerThread();
-        serverThread.start();
+        serverManager = new ServerManager();
+        serverManager.start();
     }
 
     public void stopServer() {
-        if (serverThread != null) {
-            serverThread.serverShutdown();
-            serverThread.interrupt();
-            serverThread = null;
+        if (serverManager != null) {
+            serverManager.serverShutdown();
+            serverManager.interrupt();
+            serverManager = null;
         }
     }
 }

@@ -18,28 +18,31 @@ public class Client {
         return instance;
     }
 
-    private volatile ClientManager clientManager;
+    private volatile ClientSocketManager clientSocketManager = null;
 
-    public ClientManager getClientManager() {
-        return clientManager;
+    public ClientSocketManager getClientSocketManager() {
+        return clientSocketManager;
     }
 
     public void connect() {
         disconnect();
-        clientManager = new ClientManager();
-        clientManager.connect();
+        clientSocketManager = new ClientSocketManager();
+        clientSocketManager.startSocketManager();
     }
 
     public void disconnect() {
-        if (clientManager != null) {
-            clientManager.disconnect();
-            clientManager = null;
+        if (clientSocketManager != null) {
+            clientSocketManager.stopSocketManager();
+            clientSocketManager = null;
         }
     }
 
     public void sendMessage(String message) {
-        clientManager.sendMessage(message);
+        clientSocketManager.queueTransmission(message);
     }
 
 
+    public boolean isConnected() {
+        return clientSocketManager != null && clientSocketManager.isManagerAlive();
+    }
 }

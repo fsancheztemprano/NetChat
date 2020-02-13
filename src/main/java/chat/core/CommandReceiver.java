@@ -2,37 +2,46 @@ package chat.core;
 
 import chat.model.ActivableThread;
 import chat.model.AppPacket;
-import chat.model.IHeartBeatDaemon;
+import chat.model.IHeartbeatDaemon;
+import chat.model.ISocketManager;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
+import tools.log.Flogger;
 
 public class CommandReceiver extends ActivableThread {
 
     public BlockingQueue<AppPacket> inboundCommandQueue;
 
     private InputStream inputStream;
-    private IHeartBeatDaemon heartBeatTimeHolder;
+    private IHeartbeatDaemon heartbeatDaemon;
+    private ISocketManager socketManager;
 
-    public CommandReceiver(BlockingQueue<AppPacket> inboundCommandQueue, InputStream inputStream, IHeartBeatDaemon heartBeatManager) {
-        this.inboundCommandQueue = inboundCommandQueue;
-        this.inputStream         = inputStream;
-        this.heartBeatTimeHolder = heartBeatManager;
+    public CommandReceiver(ISocketManager socketManager) {
+        this.socketManager       = socketManager;
+        this.inboundCommandQueue = socketManager.getInboundCommandQueue();
+        this.inputStream         = socketManager.getInputStream();
+        this.heartbeatDaemon     = socketManager.getHeartbeatDaemon();
     }
 
     @Override
     public void run() {
-        setActive(true);
         try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(inputStream));
+            setActive(true);
             while (isActive()) {
                 try {
                     AppPacket receivedMessage = (AppPacket) objectInputStream.readObject();
                     System.out.println("Recieved: " + receivedMessage);
-                    heartBeatTimeHolder.updateHeartBeatTime();
+                    heartbeatDaemon.updateHeartBeatTime();
 
                     inboundCommandQueue.put(receivedMessage);
+                } catch (SocketException se) {
+                    Flogger.atWarning().withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost
+                    setActive(false);
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 } catch (ClassNotFoundException cnfe) {
@@ -41,10 +50,13 @@ public class CommandReceiver extends ActivableThread {
                     ie.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            socketManager.stopSocketManager();
         }
     }
 

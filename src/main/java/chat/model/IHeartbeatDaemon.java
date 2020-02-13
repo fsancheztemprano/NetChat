@@ -1,6 +1,6 @@
 package chat.model;
 
-public interface IHeartBeatDaemon {
+public interface IHeartbeatDaemon {
 
     void updateHeartBeatTime();
 }

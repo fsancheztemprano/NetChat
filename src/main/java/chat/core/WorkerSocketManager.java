@@ -1,9 +1,11 @@
 package chat.core;
 
 import chat.model.AppPacket;
-import chat.model.IHeartBeater;
+import chat.model.ISocketManager;
 import chat.model.ProtocolSignal;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -11,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class WorkerManager implements IHeartBeater {
+public class WorkerSocketManager implements ISocketManager {
 
     private Socket workerSocket;
     private ExecutorService workerManagerPool;
@@ -21,22 +23,26 @@ public class WorkerManager implements IHeartBeater {
     private CommandReceiver commandReceiver;
     private CommandTransmitter commandTransmitter;
 
-    private BlockingQueue<AppPacket> workerCommandQueue;
-    private BlockingQueue<WorkerManager> workerList;
+    private BlockingQueue<AppPacket> serverInboundCommandQueue;
+    private BlockingQueue<AppPacket> workerOutboundCommandQueue;
+    private BlockingQueue<WorkerSocketManager> workerList;
 
-    public WorkerManager(Socket workerSocket, BlockingQueue<AppPacket> serverCommandQueue, BlockingQueue<WorkerManager> workerList) throws IOException {
-        this.workerSocket  = workerSocket;
-        this.workerList    = workerList;
-        heartbeatPacket    = new AppPacket(ProtocolSignal.HEARTBEAT, workerSocket.getLocalSocketAddress(), "kokoro", "heartbeat");
-        workerCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-        workerManagerPool  = Executors.newFixedThreadPool(3);
-        heartbeatDaemon    = new HeartbeatDaemon(this);
-        commandReceiver    = new CommandReceiver(serverCommandQueue, workerSocket.getInputStream(), heartbeatDaemon);
-        commandTransmitter = new CommandTransmitter(workerCommandQueue, workerSocket.getOutputStream(), heartbeatDaemon);
+    public WorkerSocketManager(Socket workerSocket, BlockingQueue<AppPacket> serverInboundCommandQueue, BlockingQueue<WorkerSocketManager> workerList) {
+        this.workerSocket              = workerSocket;
+        this.serverInboundCommandQueue = serverInboundCommandQueue;
+        this.workerList                = workerList;
+        heartbeatPacket                = new AppPacket(ProtocolSignal.HEARTBEAT, workerSocket.getLocalSocketAddress(), "kokoro", "heartbeat");
+
     }
 
 
-    public void startWorker() {
+    @Override
+    public void startSocketManager() {
+        workerOutboundCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+        workerManagerPool          = Executors.newFixedThreadPool(3);
+        heartbeatDaemon            = new HeartbeatDaemon(this);
+        commandReceiver            = new CommandReceiver(this);
+        commandTransmitter         = new CommandTransmitter(this);
 
         workerManagerPool.submit(commandTransmitter);
         workerManagerPool.submit(commandReceiver);
@@ -44,7 +50,8 @@ public class WorkerManager implements IHeartBeater {
     }
 
 
-    public void stopWorker() {
+    @Override
+    public void stopSocketManager() {
         heartbeatDaemon.setActive(false);
         commandTransmitter.setActive(false);
         commandReceiver.setActive(false);
@@ -63,12 +70,12 @@ public class WorkerManager implements IHeartBeater {
             // (Re-)Cancel if current thread also interrupted
             workerManagerPool.shutdownNow();
         } finally {
-            closeSocket();
+            closeSockets();
             workerList.remove(this);
         }
     }
 
-    private void closeSocket() {
+    private void closeSockets() {
         try {
             workerSocket.getOutputStream().close();
         } catch (IOException e) {
@@ -88,9 +95,10 @@ public class WorkerManager implements IHeartBeater {
         }
     }
 
+    @Override
     public void queueTransmission(AppPacket appPacket) {
         try {
-            workerCommandQueue.put(appPacket);
+            workerOutboundCommandQueue.put(appPacket);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -98,10 +106,48 @@ public class WorkerManager implements IHeartBeater {
     }
 
     @Override
+    public BlockingQueue<AppPacket> getInboundCommandQueue() {
+        return serverInboundCommandQueue;
+    }
+
+    @Override
+    public BlockingQueue<AppPacket> getOutboundCommandQueue() {
+        return workerOutboundCommandQueue;
+    }
+
+    @Override
+    public HeartbeatDaemon getHeartbeatDaemon() {
+        return heartbeatDaemon;
+    }
+
+    @Override
+    public OutputStream getOutputStream() {
+        OutputStream outputStream = null;
+        try {
+            outputStream = workerSocket.getOutputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return outputStream;
+    }
+
+    @Override
+    public InputStream getInputStream() {
+        InputStream inputStream = null;
+        try {
+            inputStream = workerSocket.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return inputStream;
+    }
+
+
+    @Override
     public void sendHeartbeatPacket() {
-        if (!workerCommandQueue.contains(heartbeatPacket)) {
+        if (!workerOutboundCommandQueue.contains(heartbeatPacket)) {
             try {
-                workerCommandQueue.put(heartbeatPacket);
+                workerOutboundCommandQueue.put(heartbeatPacket);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -110,6 +156,11 @@ public class WorkerManager implements IHeartBeater {
 
     @Override
     public void timeout() {
-        stopWorker();
+        stopSocketManager();
+    }
+
+    @Override
+    public boolean isManagerAlive() {
+        return workerSocket != null && !workerSocket.isClosed();
     }
 }

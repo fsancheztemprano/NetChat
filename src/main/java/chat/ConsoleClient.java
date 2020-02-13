@@ -8,10 +8,14 @@ public class ConsoleClient {
     public static void main(String[] args) {
         Client.getInstance().connect();
         Scanner scanner = new Scanner(System.in);
-        while (true) {
-            Client.getInstance().sendMessage(scanner.nextLine());
 
+        String userin = "";
+        while (!(userin = scanner.nextLine()).equalsIgnoreCase("exit") && Client.getInstance().isConnected()) {
+            Client.getInstance().sendMessage(userin);
         }
+        Client.getInstance().disconnect();
+        System.out.println("END");
+        System.exit(0);
     }
 
 }

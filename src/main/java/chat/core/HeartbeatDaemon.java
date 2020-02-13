@@ -1,17 +1,17 @@
 package chat.core;
 
 import chat.model.ActivableThread;
-import chat.model.IHeartBeatDaemon;
-import chat.model.IHeartBeater;
+import chat.model.IHeartbeatDaemon;
+import chat.model.ISocketManager;
 import java.time.LocalDateTime;
 
-public class HeartbeatDaemon extends ActivableThread implements IHeartBeatDaemon {
+public class HeartbeatDaemon extends ActivableThread implements IHeartbeatDaemon {
 
-    private IHeartBeater manager;
+    private ISocketManager manager;
     private LocalDateTime lastHeartbeat = null;
 
-    public HeartbeatDaemon(IHeartBeater context) {
-        this.manager = context;
+    public HeartbeatDaemon(ISocketManager socketManager) {
+        this.manager = socketManager;
 
     }
 
@@ -22,7 +22,7 @@ public class HeartbeatDaemon extends ActivableThread implements IHeartBeatDaemon
             try {
                 if (Globals.HEARTBEAT_TIMEOUT != 0 && lastHeartbeat != null && lastHeartbeat.plusSeconds(Globals.HEARTBEAT_TIMEOUT).isBefore(LocalDateTime.now())) {
                     manager.timeout();
-                } else if (manager instanceof WorkerManager && (lastHeartbeat == null || lastHeartbeat.plusSeconds(Globals.HEARTBEAT_DELAY).isBefore(LocalDateTime.now()))) {
+                } else if (manager instanceof WorkerSocketManager && (lastHeartbeat == null || lastHeartbeat.plusSeconds(Globals.HEARTBEAT_DELAY).isBefore(LocalDateTime.now()))) {
                     manager.sendHeartbeatPacket();
                 }
                 Thread.sleep(Globals.HEARTBEAT_INTERVAL);

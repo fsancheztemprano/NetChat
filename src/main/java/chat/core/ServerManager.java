@@ -2,6 +2,7 @@ package chat.core;
 
 import chat.model.ActivableThread;
 import chat.model.AppPacket;
+import chat.model.IServerManager;
 import chat.model.IServerStatusListener;
 import java.io.IOException;
 import java.net.BindException;
@@ -15,7 +16,7 @@ import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-class ServerThread extends ActivableThread {
+class ServerManager extends ActivableThread implements IServerManager {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
@@ -24,19 +25,25 @@ class ServerThread extends ActivableThread {
     private ServerSocket serverSocket = null;
     private InetSocketAddress inetSocketAddress;
 
-    private BlockingQueue<WorkerManager> workerList;
+    private BlockingQueue<WorkerSocketManager> workerList;
 
     private BlockingQueue<AppPacket> serverCommandQueue;
     private ServerCommandProcessor serverCommandProcessor;
 
-    public ServerThread() {
+    public ServerManager() {
         workerList             = new ArrayBlockingQueue<>(Globals.MAX_ACTIVE_CLIENTS);
         serverCommandQueue     = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-        serverCommandProcessor = new ServerCommandProcessor(serverCommandQueue, workerList);
+        serverCommandProcessor = new ServerCommandProcessor(this);
     }
 
-    public ServerSocket getServerSocket() {
-        return serverSocket;
+    @Override
+    public BlockingQueue<AppPacket> getServerCommandQueue() {
+        return serverCommandQueue;
+    }
+
+    @Override
+    public void transmitToAllClients(AppPacket appPacket) {
+        workerList.forEach(worker -> worker.queueTransmission(appPacket));
     }
 
     @Override
@@ -60,9 +67,9 @@ class ServerThread extends ActivableThread {
                 Socket clientSocket = serverSocket.accept();
                 clientSocket.setKeepAlive(true);
                 log("Conexion entrante: " + clientSocket.getRemoteSocketAddress());
-                WorkerManager workerManager = new WorkerManager(clientSocket, serverCommandQueue, workerList);
-                if (workerList.add(workerManager))
-                    workerManager.startWorker();
+                WorkerSocketManager workerSocketManager = new WorkerSocketManager(clientSocket, serverCommandQueue, workerList);
+                if (workerList.add(workerSocketManager))
+                    workerSocketManager.startSocketManager();
             }
         } catch (IllegalStateException ise) {
             log("Rejecting incoming con, Server Full");
@@ -83,7 +90,8 @@ class ServerThread extends ActivableThread {
         }
     }
 
-    public boolean isServerAlive() {
+    @Override
+    public boolean isManagerAlive() {
         return serverSocket != null && serverSocket.isBound();
     }
 
@@ -101,7 +109,7 @@ class ServerThread extends ActivableThread {
     }
 
     private void killAllClients() {
-        workerList.forEach(WorkerManager::stopWorker);
+        workerList.forEach(WorkerSocketManager::stopSocketManager);
         workerList.clear();
     }
 
@@ -117,7 +125,7 @@ class ServerThread extends ActivableThread {
             ioe.printStackTrace();
         } finally {
             setActive(false);
-            notifyServerStatus(isServerAlive());
+            notifyServerStatus(this.isManagerAlive());
             log("Server Thread Terminado");
         }
     }
@@ -135,6 +143,7 @@ class ServerThread extends ActivableThread {
         }
     }
 
+    @Override
     public void serverShutdown() {
         setActive(false);
         try {
@@ -142,7 +151,7 @@ class ServerThread extends ActivableThread {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            log("Server shutdown :" + (isServerAlive() ? "fail" : "success"));
+            log("Server shutdown :" + (this.isManagerAlive() ? "fail" : "success"));
         }
     }
 
