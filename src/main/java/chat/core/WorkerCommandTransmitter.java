@@ -33,9 +33,11 @@ public class WorkerCommandTransmitter extends ActivableThread {
                     objectOutputStream.writeObject(appPacket);
                     objectOutputStream.flush();
                     heartBeatTimeHolder.updateHeartBeatTime();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
+                } catch (InterruptedException ie) {
+                    ie.printStackTrace();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }

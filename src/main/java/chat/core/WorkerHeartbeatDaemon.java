@@ -28,7 +28,9 @@ public class WorkerHeartbeatDaemon extends ActivableThread implements IHeartBeat
                     sendHeartBeat();
                 }
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

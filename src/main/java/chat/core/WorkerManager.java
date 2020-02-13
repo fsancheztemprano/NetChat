@@ -20,14 +20,15 @@ public class WorkerManager {
     private WorkerCommandTransmitter workerCommandTransmitter;
 
     private BlockingQueue<AppPacket> workerCommandQueue;
+    private BlockingQueue<WorkerManager> workerList;
 
-
-    public WorkerManager(Socket workerSocket, BlockingQueue<AppPacket> serverCommandQueue) throws IOException {
+    public WorkerManager(Socket workerSocket, BlockingQueue<AppPacket> serverCommandQueue, BlockingQueue<WorkerManager> workerList) throws IOException {
         this.workerSocket        = workerSocket;
         workerCommandQueue       = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
         workerHeartbeatDaemon    = new WorkerHeartbeatDaemon(this);
         workerCommandReceiver    = new WorkerCommandReceiver(serverCommandQueue, workerSocket.getInputStream(), workerHeartbeatDaemon);
         workerCommandTransmitter = new WorkerCommandTransmitter(workerCommandQueue, workerSocket.getOutputStream(), workerHeartbeatDaemon);
+        this.workerList          = workerList;
     }
 
 
@@ -59,13 +60,21 @@ public class WorkerManager {
             workerPool.shutdownNow();
         } finally {
             try {
-                workerSocket.getOutputStream().close();
-                workerSocket.getInputStream().close();
+                try {
+                    try {
+                        workerSocket.getOutputStream().close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    workerSocket.getInputStream().close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 workerSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                //TODO remove from workerList
+                workerList.remove(this);
             }
         }
     }

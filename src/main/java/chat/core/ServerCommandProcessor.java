@@ -20,14 +20,16 @@ public class ServerCommandProcessor extends ActivableThread {
         while (isActive()) {
             try {
                 AppPacket appPacket = this.serverCommandQueue.take();
-                processMessage(appPacket);
-            } catch (InterruptedException e) {
+                processCommand(appPacket);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void processMessage(AppPacket appPacket) {
+    private void processCommand(AppPacket appPacket) {
         if (appPacket == null || appPacket.getUsername() == null || appPacket.getOriginSocketAddress() == null)
             return;
 

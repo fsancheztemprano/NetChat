@@ -33,11 +33,13 @@ public class WorkerCommandReceiver extends ActivableThread {
                     heartBeatTimeHolder.updateHeartBeatTime();
 
                     commandQueue.put(receivedMessage);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                } catch (ClassNotFoundException cnfe) {
+                    cnfe.printStackTrace();
+                } catch (InterruptedException ie) {
+                    ie.printStackTrace();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
