@@ -7,6 +7,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 
 public class CommandTransmitter extends ActivableThread {
@@ -33,6 +34,9 @@ public class CommandTransmitter extends ActivableThread {
                     objectOutputStream.writeObject(appPacket);
                     objectOutputStream.flush();
                     heartBeatTimeHolder.updateHeartBeatTime();
+                    System.out.println("Transmitted: " + appPacket);
+                } catch (SocketException se) {
+                    se.printStackTrace();
                 } catch (InterruptedException ie) {
                     ie.printStackTrace();
                 } catch (IOException ioe) {

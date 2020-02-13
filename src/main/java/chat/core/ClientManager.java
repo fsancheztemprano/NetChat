@@ -3,6 +3,7 @@ package chat.core;
 import chat.model.AppPacket;
 import chat.model.IHeartBeater;
 import chat.model.IServerStatusListener;
+import chat.model.ProtocolSignal;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -49,13 +50,19 @@ class ClientManager implements IHeartBeater {
             log("Conectado: " + addr.getAddress());
             notifyClientStatus(true);
 
-            inboundCommandQueue  = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-            outboundCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-            clientManagerPool    = Executors.newFixedThreadPool(4);
+            inboundCommandQueue    = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+            outboundCommandQueue   = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+            clientManagerPool      = Executors.newFixedThreadPool(4);
+            clientCommandProcessor = new ClientCommandProcessor(inboundCommandQueue);
 
             heartbeatDaemon    = new HeartbeatDaemon(this);
             commandReceiver    = new CommandReceiver(inboundCommandQueue, clientSocket.getInputStream(), heartbeatDaemon);
             commandTransmitter = new CommandTransmitter(outboundCommandQueue, clientSocket.getOutputStream(), heartbeatDaemon);
+
+            clientManagerPool.submit(clientCommandProcessor);
+            clientManagerPool.submit(commandTransmitter);
+            clientManagerPool.submit(commandReceiver);
+            clientManagerPool.submit(heartbeatDaemon);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -143,5 +150,14 @@ class ClientManager implements IHeartBeater {
     private void log(String msg) {
         System.out.println(msg);
         notifyLogOutput(msg);
+    }
+
+    public void sendMessage(String message) {
+        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, clientSocket.getLocalSocketAddress(), "cli", message);
+        try {
+            outboundCommandQueue.put(newMessage);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

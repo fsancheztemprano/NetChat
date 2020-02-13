@@ -99,10 +99,12 @@ public class WorkerManager implements IHeartBeater {
 
     @Override
     public void sendHeartbeatPacket() {
-        try {
-            workerCommandQueue.put(heartbeatPacket);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (!workerCommandQueue.contains(heartbeatPacket)) {
+            try {
+                workerCommandQueue.put(heartbeatPacket);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -37,8 +37,9 @@ public class Client {
         }
     }
 
-
-
+    public void sendMessage(String message) {
+        clientManager.sendMessage(message);
+    }
 
 
 }

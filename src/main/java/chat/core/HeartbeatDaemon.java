@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class HeartbeatDaemon extends ActivableThread implements IHeartBeatDaemon {
 
     private IHeartBeater manager;
-    private LocalDateTime lastHeartbeat;
+    private LocalDateTime lastHeartbeat = null;
 
     public HeartbeatDaemon(IHeartBeater context) {
         this.manager = context;
@@ -17,14 +17,15 @@ public class HeartbeatDaemon extends ActivableThread implements IHeartBeatDaemon
 
     @Override
     public void run() {
+        setActive(true);
         while (isActive()) {
             try {
-                if (Globals.WORKER_HEARTBEAT_TIMEOUT != 0 && lastHeartbeat != null && lastHeartbeat.plusSeconds(Globals.WORKER_HEARTBEAT_TIMEOUT).isAfter(LocalDateTime.now())) {
+                if (Globals.HEARTBEAT_TIMEOUT != 0 && lastHeartbeat != null && lastHeartbeat.plusSeconds(Globals.HEARTBEAT_TIMEOUT).isBefore(LocalDateTime.now())) {
                     manager.timeout();
-                } else if (lastHeartbeat == null || lastHeartbeat.plusSeconds(Globals.HEARTBEAT_DELAY).isAfter(LocalDateTime.now())) {
-                    sendHeartBeat();
+                } else if (manager instanceof WorkerManager && (lastHeartbeat == null || lastHeartbeat.plusSeconds(Globals.HEARTBEAT_DELAY).isBefore(LocalDateTime.now()))) {
+                    manager.sendHeartbeatPacket();
                 }
-                Thread.sleep(1000);
+                Thread.sleep(Globals.HEARTBEAT_INTERVAL);
             } catch (InterruptedException ie) {
                 ie.printStackTrace();
             } catch (Exception e) {
@@ -36,10 +37,5 @@ public class HeartbeatDaemon extends ActivableThread implements IHeartBeatDaemon
     @Override
     public synchronized void updateHeartBeatTime() {
         lastHeartbeat = LocalDateTime.now();
-    }
-
-    private void sendHeartBeat() {
-        if (manager instanceof WorkerManager)
-            manager.sendHeartbeatPacket();
     }
 }
