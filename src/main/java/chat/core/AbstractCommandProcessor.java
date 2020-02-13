@@ -6,6 +6,7 @@ import chat.model.IManagerStartable;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import tools.log.Flogger;
 
 public abstract class AbstractCommandProcessor extends ActivableThread {
 
@@ -27,12 +28,16 @@ public abstract class AbstractCommandProcessor extends ActivableThread {
                 if (appPacket != null) {
                     processCommand(appPacket);
                 }
+                System.out.println(manager.isManagerAlive());
                 if (!manager.isManagerAlive())
                     throw new SocketException();
+            } catch (SocketException se) {
+                Flogger.atWarning().withCause(se).log("ER-CP-0001");       //(manager closed) TODO msg: connection lost
+                setActive(false);
             } catch (InterruptedException ie) {
-                ie.printStackTrace();
+                Flogger.atWarning().withCause(ie).log("ER-CP-0002");
             } catch (Exception e) {
-                e.printStackTrace();
+                Flogger.atWarning().withCause(e).log("ER-CP-0000");
             }
         }
     }

@@ -59,7 +59,7 @@ class ServerManager extends ActivableThread implements IServerManager {
             serverSocket.bind(inetSocketAddress);
             serverCommandProcessor.start();
             setActive(true);
-            notifyServerStatus(active);
+            notifyServerStatus(isActive());
             notifyActiveClients(activeClients);
 
             log("Aceptando conexiones: " + serverSocket.getLocalSocketAddress().toString());

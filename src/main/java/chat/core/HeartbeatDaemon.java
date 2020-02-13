@@ -4,6 +4,7 @@ import chat.model.ActivableThread;
 import chat.model.IHeartbeatDaemon;
 import chat.model.ISocketManager;
 import java.time.LocalDateTime;
+import tools.log.Flogger;
 
 public class HeartbeatDaemon extends ActivableThread implements IHeartbeatDaemon {
 
@@ -27,9 +28,9 @@ public class HeartbeatDaemon extends ActivableThread implements IHeartbeatDaemon
                 }
                 Thread.sleep(Globals.HEARTBEAT_INTERVAL);
             } catch (InterruptedException ie) {
-                ie.printStackTrace();
+                Flogger.atWarning().withCause(ie).log("ER-HD-0001");
             } catch (Exception e) {
-                e.printStackTrace();
+                Flogger.atWarning().withCause(e).log("ER-HD-0000");
             }
         }
     }

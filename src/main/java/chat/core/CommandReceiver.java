@@ -35,22 +35,22 @@ public class CommandReceiver extends ActivableThread {
             while (isActive()) {
                 try {
                     AppPacket receivedMessage = (AppPacket) objectInputStream.readObject();
-                    System.out.println("Recieved: " + receivedMessage);
+                    System.out.println("Received: " + receivedMessage);
                     heartbeatDaemon.updateHeartBeatTime();
 
                     inboundCommandQueue.put(receivedMessage);
                 } catch (SocketException se) {
-                    Flogger.atWarning().withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost
                     setActive(false);
+                    Flogger.atWarning().withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost
+                    Thread.currentThread().interrupt();
                 } catch (IOException ioe) {
-                    ioe.printStackTrace();
+                    Flogger.atWarning().withCause(ioe).log("ER-CR-0002");
                 } catch (ClassNotFoundException cnfe) {
-                    cnfe.printStackTrace();
+                    Flogger.atWarning().withCause(cnfe).log("ER-CR-0003");
                 } catch (InterruptedException ie) {
-                    ie.printStackTrace();
+                    Flogger.atWarning().withCause(ie).log("ER-CR-0004");
                 } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
+                    Flogger.atWarning().withCause(e).log("ER-CR-0000");
                 }
             }
         } catch (IOException e) {

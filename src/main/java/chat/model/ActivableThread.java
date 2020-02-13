@@ -1,15 +1,17 @@
 package chat.model;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public abstract class ActivableThread extends Thread {
 
-    protected boolean active = false;
+    protected AtomicBoolean active = new AtomicBoolean(false);
 
     public boolean isActive() {
-        return active;
+        return active.get();
     }
 
     public void setActive(boolean active) {
-        this.active = active;
+        this.active.set(active);
     }
 
     @Override

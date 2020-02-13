@@ -10,7 +10,7 @@ public class ConsoleClient {
         Scanner scanner = new Scanner(System.in);
 
         String userin = "";
-        while (!(userin = scanner.nextLine()).equalsIgnoreCase("exit") && Client.getInstance().isConnected()) {
+        while (!((userin = scanner.nextLine()).equalsIgnoreCase("exit")) && Client.getInstance().isConnected()) {
             Client.getInstance().sendMessage(userin);
         }
         Client.getInstance().disconnect();

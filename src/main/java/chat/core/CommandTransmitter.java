@@ -35,6 +35,8 @@ public class CommandTransmitter extends ActivableThread {
             AppPacket appPacket = null;
             while (isActive()) {
                 try {
+                    if (!socketManager.isManagerAlive())
+                        throw new SocketException();
                     appPacket = this.outboundCommandQueue.poll(Globals.TRANSMITTER_THREAD_TIMEOUT, TimeUnit.SECONDS);
                     if (appPacket != null) {
                         objectOutputStream.writeObject(appPacket);
@@ -42,19 +44,15 @@ public class CommandTransmitter extends ActivableThread {
                         heartbeatDaemon.updateHeartBeatTime();
                         System.out.println("Transmitted: " + appPacket);
                     }
-                    if (!socketManager.isManagerAlive())
-                        throw new SocketException();
                 } catch (SocketException se) {
                     Flogger.atWarning().withCause(se).log("ER-CT-0001");       //(outputStream closed) TODO msg:Server connection lost
                     setActive(false);
                 } catch (InterruptedException ie) {
-                    Flogger.atWarning().withCause(ie).log("ER-0002");
-                    ie.printStackTrace();
+                    Flogger.atWarning().withCause(ie).log("ER-CT-0002");
                 } catch (IOException ioe) {
-                    ioe.printStackTrace();
+                    Flogger.atWarning().withCause(ioe).log("ER-CT-0003");
                 } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
+                    Flogger.atWarning().withCause(e).log("ER-CT-0004");
                 }
             }
         } catch (IOException e) {
