@@ -54,7 +54,7 @@ public class CommandReceiver extends ActivableThread {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Flogger.atWarning().withCause(e).log("ER-CR-0005");
         } finally {
             socketManager.stopSocketManager();
         }

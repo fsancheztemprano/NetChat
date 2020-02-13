@@ -2,7 +2,7 @@ package chat.model;
 
 import java.util.concurrent.BlockingQueue;
 
-public interface IServerManager extends IManagerStartable {
+public interface IServerSocketManager extends IManagerStartable {
 
     BlockingQueue<AppPacket> getServerCommandQueue();
 

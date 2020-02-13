@@ -86,7 +86,7 @@ class ClientSocketManager implements ISocketManager {
 
     @Override
     public synchronized void stopSocketManager() {
-        if (isActive()) {
+        if (isActive() && clientSocket != null) {
             try {
                 if (heartbeatDaemon != null)
                     commandTransmitter.setActive(false);
@@ -116,36 +116,17 @@ class ClientSocketManager implements ISocketManager {
             } catch (Exception e) {
                 Flogger.atInfo().withCause(e).log("ER-CSM-0000");
             } finally {
-                closeSockets();
-                notifyClientStatus(isManagerAlive());
-            }
-        }
-    }
-
-    private void closeSockets() {
-        if (clientSocket != null) {
-            try {
-                clientSocket.getOutputStream().close();
-            } catch (IOException e) {
-                Flogger.atInfo().withCause(e).log("ER-CSM-0003");
-            } finally {
                 try {
-                    clientSocket.getInputStream().close();
+                    clientSocket.close();
                 } catch (IOException e) {
-                    Flogger.atInfo().withCause(e).log("ER-CSM-0004");
+                    Flogger.atInfo().withCause(e).log("ER-CSM-0003");
                 } finally {
-                    try {
-                        clientSocket.close();
-                    } catch (IOException e) {
-                        Flogger.atInfo().withCause(e).log("ER-CSM-0005");
-                    } finally {
-                        setActive(false);
-                    }
+                    setActive(false);
+                    notifyClientStatus(isManagerAlive());
                 }
             }
         }
     }
-
 
     @Override
     public void sendHeartbeatPacket() {

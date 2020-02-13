@@ -2,7 +2,7 @@ package chat.core;
 
 import chat.model.ActivableThread;
 import chat.model.AppPacket;
-import chat.model.IServerManager;
+import chat.model.IServerSocketManager;
 import chat.model.IServerStatusListener;
 import java.io.IOException;
 import java.net.BindException;
@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-class ServerManager extends ActivableThread implements IServerManager {
+class ServerSocketManager extends ActivableThread implements IServerSocketManager {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
@@ -30,7 +30,7 @@ class ServerManager extends ActivableThread implements IServerManager {
     private BlockingQueue<AppPacket> serverCommandQueue;
     private ServerCommandProcessor serverCommandProcessor;
 
-    public ServerManager() {
+    public ServerSocketManager() {
         workerList             = new ArrayBlockingQueue<>(Globals.MAX_ACTIVE_CLIENTS);
         serverCommandQueue     = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
         serverCommandProcessor = new ServerCommandProcessor(this);
@@ -147,11 +147,12 @@ class ServerManager extends ActivableThread implements IServerManager {
     public void serverShutdown() {
         setActive(false);
         try {
-            serverSocket.close();
+            if (serverSocket != null)
+                serverSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            log("Server shutdown :" + (this.isManagerAlive() ? "fail" : "success"));
+            log("Server shutdown : " + (this.isManagerAlive() ? "fail" : "success"));
         }
     }
 

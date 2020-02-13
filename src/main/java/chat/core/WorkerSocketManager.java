@@ -12,6 +12,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import tools.log.Flogger;
 
 public class WorkerSocketManager implements ISocketManager {
 
@@ -52,9 +53,12 @@ public class WorkerSocketManager implements ISocketManager {
 
     @Override
     public void stopSocketManager() {
-        heartbeatDaemon.setActive(false);
-        commandTransmitter.setActive(false);
-        commandReceiver.setActive(false);
+        if (heartbeatDaemon != null)
+            heartbeatDaemon.setActive(false);
+        if (commandTransmitter != null)
+            commandTransmitter.setActive(false);
+        if (commandReceiver != null)
+            commandReceiver.setActive(false);
 
         workerManagerPool.shutdown(); // Disable new tasks from being submitted
         try {
@@ -69,28 +73,18 @@ public class WorkerSocketManager implements ISocketManager {
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted
             workerManagerPool.shutdownNow();
-        } finally {
-            closeSockets();
-            workerList.remove(this);
-        }
-    }
-
-    private void closeSockets() {
-        try {
-            workerSocket.getOutputStream().close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            Flogger.atInfo().withCause(ie).log("ER-WSM-0001");
+        } catch (NullPointerException npw) {
+            Flogger.atInfo().withCause(npw).log("ER-WSM-0002");
+        } catch (Exception e) {
+            Flogger.atInfo().withCause(e).log("ER-WSM-0000");
         } finally {
             try {
-                workerSocket.getInputStream().close();
+                workerSocket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                Flogger.atInfo().withCause(e).log("ER-WSM-0003");
             } finally {
-                try {
-                    workerSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                workerList.remove(this);
             }
         }
     }
@@ -100,7 +94,7 @@ public class WorkerSocketManager implements ISocketManager {
         try {
             workerOutboundCommandQueue.put(appPacket);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Flogger.atInfo().withCause(e).log("ER-WSM-0004");
         }
 
     }
@@ -126,7 +120,7 @@ public class WorkerSocketManager implements ISocketManager {
         try {
             outputStream = workerSocket.getOutputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            Flogger.atInfo().withCause(e).log("ER-WSM-0005");
         }
         return outputStream;
     }
@@ -137,7 +131,7 @@ public class WorkerSocketManager implements ISocketManager {
         try {
             inputStream = workerSocket.getInputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            Flogger.atInfo().withCause(e).log("ER-WSM-0006");
         }
         return inputStream;
     }
@@ -149,7 +143,7 @@ public class WorkerSocketManager implements ISocketManager {
             try {
                 workerOutboundCommandQueue.put(heartbeatPacket);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Flogger.atInfo().withCause(e).log("ER-WSM-0007");
             }
         }
     }

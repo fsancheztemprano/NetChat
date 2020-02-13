@@ -1,13 +1,13 @@
 package chat.core;
 
 import chat.model.AppPacket;
-import chat.model.IServerManager;
+import chat.model.IServerSocketManager;
 
 public class ServerCommandProcessor extends AbstractCommandProcessor {
 
-    private IServerManager serverManager;
+    private IServerSocketManager serverManager;
 
-    public ServerCommandProcessor(IServerManager serverManager) {
+    public ServerCommandProcessor(IServerSocketManager serverManager) {
         super(serverManager, serverManager.getServerCommandQueue());
         this.serverManager = serverManager;
     }

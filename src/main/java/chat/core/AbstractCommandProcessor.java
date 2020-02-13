@@ -28,7 +28,6 @@ public abstract class AbstractCommandProcessor extends ActivableThread {
                 if (appPacket != null) {
                     processCommand(appPacket);
                 }
-                System.out.println(manager.isManagerAlive());
                 if (!manager.isManagerAlive())
                     throw new SocketException();
             } catch (SocketException se) {
