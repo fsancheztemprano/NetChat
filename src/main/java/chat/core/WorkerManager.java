@@ -1,80 +1,89 @@
 package chat.core;
 
 import chat.model.AppPacket;
+import chat.model.IHeartBeater;
+import chat.model.ProtocolSignal;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class WorkerManager {
+public class WorkerManager implements IHeartBeater {
 
     private Socket workerSocket;
-    private ExecutorService workerPool = Executors.newFixedThreadPool(3);
+    private ExecutorService workerManagerPool;
 
-    private WorkerHeartbeatDaemon workerHeartbeatDaemon;
-    private WorkerCommandReceiver workerCommandReceiver;
-    private WorkerCommandTransmitter workerCommandTransmitter;
+    private final AppPacket heartbeatPacket;
+    private HeartbeatDaemon heartbeatDaemon;
+    private CommandReceiver commandReceiver;
+    private CommandTransmitter commandTransmitter;
 
     private BlockingQueue<AppPacket> workerCommandQueue;
     private BlockingQueue<WorkerManager> workerList;
 
     public WorkerManager(Socket workerSocket, BlockingQueue<AppPacket> serverCommandQueue, BlockingQueue<WorkerManager> workerList) throws IOException {
-        this.workerSocket        = workerSocket;
-        workerCommandQueue       = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-        workerHeartbeatDaemon    = new WorkerHeartbeatDaemon(this);
-        workerCommandReceiver    = new WorkerCommandReceiver(serverCommandQueue, workerSocket.getInputStream(), workerHeartbeatDaemon);
-        workerCommandTransmitter = new WorkerCommandTransmitter(workerCommandQueue, workerSocket.getOutputStream(), workerHeartbeatDaemon);
-        this.workerList          = workerList;
+        this.workerSocket  = workerSocket;
+        this.workerList    = workerList;
+        heartbeatPacket    = new AppPacket(ProtocolSignal.HEARTBEAT, workerSocket.getLocalSocketAddress(), "kokoro", "heartbeat");
+        workerCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+        workerManagerPool  = Executors.newFixedThreadPool(3);
+        heartbeatDaemon    = new HeartbeatDaemon(this);
+        commandReceiver    = new CommandReceiver(serverCommandQueue, workerSocket.getInputStream(), heartbeatDaemon);
+        commandTransmitter = new CommandTransmitter(workerCommandQueue, workerSocket.getOutputStream(), heartbeatDaemon);
     }
 
 
     public void startWorker() {
-        workerPool.submit(workerCommandTransmitter);
-        workerPool.submit(workerCommandReceiver);
 
-        workerPool.submit(workerHeartbeatDaemon);
+        workerManagerPool.submit(commandTransmitter);
+        workerManagerPool.submit(commandReceiver);
+        workerManagerPool.submit(heartbeatDaemon);
     }
 
 
     public void stopWorker() {
-        workerHeartbeatDaemon.setActive(false);
-        workerCommandTransmitter.setActive(false);
-        workerCommandReceiver.setActive(false);
+        heartbeatDaemon.setActive(false);
+        commandTransmitter.setActive(false);
+        commandReceiver.setActive(false);
 
-        workerPool.shutdown(); // Disable new tasks from being submitted
+        workerManagerPool.shutdown(); // Disable new tasks from being submitted
         try {
             // Wait a while for existing tasks to terminate
-            if (!workerPool.awaitTermination(60, TimeUnit.SECONDS)) {
-                workerPool.shutdownNow(); // Cancel currently executing tasks
+            if (!workerManagerPool.awaitTermination(60, TimeUnit.SECONDS)) {
+                workerManagerPool.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
-                if (!workerPool.awaitTermination(60, TimeUnit.SECONDS)) {
+                if (!workerManagerPool.awaitTermination(60, TimeUnit.SECONDS)) {
                     System.err.println("Pool did not terminate");
                 }
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted
-            workerPool.shutdownNow();
+            workerManagerPool.shutdownNow();
+        } finally {
+            closeSocket();
+            workerList.remove(this);
+        }
+    }
+
+    private void closeSocket() {
+        try {
+            workerSocket.getOutputStream().close();
+        } catch (IOException e) {
+            e.printStackTrace();
         } finally {
             try {
-                try {
-                    try {
-                        workerSocket.getOutputStream().close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    workerSocket.getInputStream().close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                workerSocket.close();
+                workerSocket.getInputStream().close();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                workerList.remove(this);
+                try {
+                    workerSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -88,11 +97,17 @@ public class WorkerManager {
 
     }
 
-    BlockingQueue<AppPacket> getWorkerCommandQueue() {
-        return workerCommandQueue;
+    @Override
+    public void sendHeartbeatPacket() {
+        try {
+            workerCommandQueue.put(heartbeatPacket);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    SocketAddress getLocalSocketAddress() {
-        return workerSocket.getLocalSocketAddress();
+    @Override
+    public void timeout() {
+        stopWorker();
     }
 }

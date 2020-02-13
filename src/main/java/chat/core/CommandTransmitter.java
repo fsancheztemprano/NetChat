@@ -2,23 +2,23 @@ package chat.core;
 
 import chat.model.ActivableThread;
 import chat.model.AppPacket;
-import chat.model.IHeartBeatTimeHolder;
+import chat.model.IHeartBeatDaemon;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.concurrent.BlockingQueue;
 
-public class WorkerCommandTransmitter extends ActivableThread {
+public class CommandTransmitter extends ActivableThread {
 
-    private BlockingQueue<AppPacket> workerCommandQueue;
+    private BlockingQueue<AppPacket> outboundCommandQueue;
     private OutputStream outputStream;
-    private IHeartBeatTimeHolder heartBeatTimeHolder;
+    private IHeartBeatDaemon heartBeatTimeHolder;
 
-    public WorkerCommandTransmitter(BlockingQueue<AppPacket> workerCommandQueue, OutputStream outputStream, IHeartBeatTimeHolder heartBeatTimeHolder) {
-        this.workerCommandQueue  = workerCommandQueue;
-        this.outputStream        = outputStream;
-        this.heartBeatTimeHolder = heartBeatTimeHolder;
+    public CommandTransmitter(BlockingQueue<AppPacket> outboundCommandQueue, OutputStream outputStream, IHeartBeatDaemon heartBeatManager) {
+        this.outboundCommandQueue = outboundCommandQueue;
+        this.outputStream         = outputStream;
+        this.heartBeatTimeHolder  = heartBeatManager;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class WorkerCommandTransmitter extends ActivableThread {
 
             while (isActive()) {
                 try {
-                    AppPacket appPacket = this.workerCommandQueue.take();
+                    AppPacket appPacket = this.outboundCommandQueue.take();
                     objectOutputStream.writeObject(appPacket);
                     objectOutputStream.flush();
                     heartBeatTimeHolder.updateHeartBeatTime();

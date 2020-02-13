@@ -18,22 +18,22 @@ public class Client {
         return instance;
     }
 
-    private volatile ClientThread clientThread;
+    private volatile ClientManager clientManager;
 
-    public ClientThread getClientThread() {
-        return clientThread;
+    public ClientManager getClientManager() {
+        return clientManager;
     }
 
     public void connect() {
         disconnect();
-        clientThread = new ClientThread();
-        clientThread.isConnected();
+        clientManager = new ClientManager();
+        clientManager.connect();
     }
 
     public void disconnect() {
-        if (clientThread != null) {
-            clientThread.disconnect();
-            clientThread = null;
+        if (clientManager != null) {
+            clientManager.disconnect();
+            clientManager = null;
         }
     }
 
