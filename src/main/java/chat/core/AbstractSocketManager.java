@@ -137,7 +137,10 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
         try {
             outboundCommandQueue.put(appPacket);
         } catch (InterruptedException e) {
-            Flogger.atInfo().withCause(e).log("ER-WSM-0004");
+            Flogger.atInfo().withCause(e).log("ER-ASM-0001");
+
+        } catch (Exception e) {
+            Flogger.atInfo().withCause(e).log("ER-ASM-0000");
         }
 
     }
@@ -155,7 +158,10 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
             try {
                 outboundCommandQueue.put(getHeartbeatPacket());
             } catch (InterruptedException e) {
-                Flogger.atInfo().withCause(e).log("ER-WSM-0007");
+                Flogger.atInfo().withCause(e).log("ER-ASM-0003");
+
+            } catch (Exception e) {
+                Flogger.atInfo().withCause(e).log("ER-ASM-0002");
             }
         }
     }
@@ -170,10 +176,12 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
         try {
             if (isSocketOpen()) {
                 managedSocket.close();
-                setActive(false);
             }
+            setActive(false);
         } catch (IOException e) {
-            Flogger.atInfo().withCause(e).log("ER-WSM-0003");
+            Flogger.atInfo().withCause(e).log("ER-ASM-0005");
+        } catch (Exception e) {
+            Flogger.atInfo().withCause(e).log("ER-ASM-0004");
         }
     }
 
@@ -192,11 +200,13 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
             } catch (InterruptedException ie) {
                 // (Re-)Cancel if current thread also interrupted
                 managerPool.shutdownNow();
-                Flogger.atInfo().withCause(ie).log("ER-WSM-0001");
+                Flogger.atInfo().withCause(ie).log("ER-ASM-0008");
             } catch (NullPointerException npw) {
-                Flogger.atInfo().withCause(npw).log("ER-WSM-0002");
+                Flogger.atInfo().withCause(npw).log("ER-ASM-0007");
             } catch (Exception e) {
-                Flogger.atInfo().withCause(e).log("ER-WSM-0000");
+                Flogger.atInfo().withCause(e).log("ER-ASM-0006");
+            } finally {
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -205,6 +215,9 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
         heartbeatDaemon    = new HeartbeatDaemon(this);
         commandReceiver    = new CommandReceiver(this);
         commandTransmitter = new CommandTransmitter(this);
+    }
+
+    protected void poolUpChildProcesses() {
         managerPool.submit(commandTransmitter);
         managerPool.submit(commandReceiver);
         managerPool.submit(heartbeatDaemon);

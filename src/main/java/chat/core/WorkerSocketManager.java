@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
+import tools.log.Flogger;
 
 public class WorkerSocketManager extends AbstractSocketManager {
 
@@ -27,19 +28,26 @@ public class WorkerSocketManager extends AbstractSocketManager {
             managerPool          = Executors.newFixedThreadPool(3);
 
             initializeChildProcesses();
+            poolUpChildProcesses();
         } catch (IOException e) {
-            e.printStackTrace();
+            Flogger.atInfo().withCause(e).log("ER-WSM-0001");
             stopSocketManager();
+        } catch (Exception e) {
+            Flogger.atInfo().withCause(e).log("ER-WSM-0000");
         }
     }
 
     @Override
     public synchronized void stopSocketManager() {
         if (isActive()) {
-            deactivateChildProcesses();
-            closePool();
-            closeSocket();
-            workerList.remove(this);
+            try {
+                workerList.remove(this);
+                deactivateChildProcesses();
+                closePool();
+                closeSocket();
+            } catch (Exception e) {
+                Flogger.atInfo().withCause(e).log("ER-WSM-0002");
+            }
         }
     }
 }

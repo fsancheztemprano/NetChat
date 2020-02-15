@@ -42,30 +42,34 @@ class ClientSocketManager extends AbstractSocketManager {
             managerPool          = Executors.newFixedThreadPool(4);
 
             initializeChildProcesses();
+            poolUpChildProcesses();
         } catch (ConnectException ce) {
-            Flogger.atInfo().withCause(ce).log("ER-CSM-0009");
+            Flogger.atInfo().withCause(ce).log("ER-CSM-0002");
             stopSocketManager();
         } catch (IOException ioe) {
-            Flogger.atInfo().withCause(ioe).log("ER-CSM-0009");
+            Flogger.atInfo().withCause(ioe).log("ER-CSM-0001");
         } catch (Exception e) {
-            Flogger.atInfo().withCause(e).log("ER-CSM-0010");
+            Flogger.atInfo().withCause(e).log("ER-CSM-0000");
         }
 
     }
 
     @Override
     public synchronized void stopSocketManager() {
-        if (isActive()) {
-            deactivateChildProcesses();
-            closePool();
-            closeSocket();
+        if (isActive() || isSocketOpen()) {
+            try {
+                deactivateChildProcesses();
+                closePool();
+                closeSocket();
+            } catch (Exception e) {
+                Flogger.atInfo().withCause(e).log("ER-CSM-0003");
+            }
         }
     }
 
     @Override
     protected void deactivateChildProcesses() {
         super.deactivateChildProcesses();
-
         if (clientCommandProcessor != null)
             clientCommandProcessor.setActive(false);
     }
@@ -74,8 +78,12 @@ class ClientSocketManager extends AbstractSocketManager {
     @Override
     protected void initializeChildProcesses() {
         clientCommandProcessor = new ClientCommandProcessor(this);
-        managerPool.submit(clientCommandProcessor);
-
         super.initializeChildProcesses();
+    }
+
+    @Override
+    protected void poolUpChildProcesses() {
+        managerPool.submit(clientCommandProcessor);
+        super.poolUpChildProcesses();
     }
 }

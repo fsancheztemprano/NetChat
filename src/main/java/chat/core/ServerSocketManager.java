@@ -79,16 +79,20 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
     @Override
     public synchronized void serverShutdown() {
         if (isActive() || isServerSocketBound() || isServerSocketOpen()) {
-            closeServerSocket();
-            stopAllClients();
-            stopCommandProcessor();
+            try {
+                closeServerSocket();
+                stopAllClients();
+                stopCommandProcessor();
 
-            listener               = Optional.empty();
-            serverSocket           = null;
-            inetSocketAddress      = null;
-            workerList             = null;
-            serverCommandQueue     = null;
-            serverCommandProcessor = null;
+                listener               = Optional.empty();
+                serverSocket           = null;
+                inetSocketAddress      = null;
+                workerList             = null;
+                serverCommandQueue     = null;
+                serverCommandProcessor = null;
+            } catch (Exception e) {
+                Flogger.atInfo().withCause(e).log("ER-SSM-0001");
+            }
         }
     }
 
@@ -122,7 +126,9 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
                 serverSocket.close();
                 setActive(false);
             } catch (IOException e) {
-                e.printStackTrace();
+                Flogger.atInfo().withCause(e).log("ER-SSM-0004");
+            } catch (Exception e) {
+                Flogger.atInfo().withCause(e).log("ER-SSM-0003");
             }
         }
 
@@ -134,12 +140,8 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
     }
 
     private void stopCommandProcessor() {
-        try {
             if (serverCommandProcessor != null)
                 serverCommandProcessor.setActive(false);
-        } catch (Exception e) {
-            Flogger.atInfo().withCause(e).log("ER-SSM-000x");
-        }
     }
 
     @Override
