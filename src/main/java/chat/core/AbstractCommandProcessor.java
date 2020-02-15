@@ -33,10 +33,13 @@ public abstract class AbstractCommandProcessor extends Activable implements Runn
             } catch (SocketException se) {
                 Flogger.atWarning().withCause(se).log("ER-CP-0001");       //(manager closed) TODO msg: connection lost
                 setActive(false);
+                Thread.currentThread().interrupt();
             } catch (InterruptedException ie) {
                 Flogger.atWarning().withCause(ie).log("ER-CP-0002");
+                setActive(false);
             } catch (Exception e) {
                 Flogger.atWarning().withCause(e).log("ER-CP-0000");
+                setActive(false);
             }
         }
     }

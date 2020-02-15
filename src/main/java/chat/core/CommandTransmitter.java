@@ -41,6 +41,7 @@ public class CommandTransmitter extends Activable implements Runnable {
                 } catch (SocketException se) {
                     Flogger.atWarning().withCause(se).log("ER-CT-0001");       //(outputStream closed) TODO msg:Server connection lost
                     setActive(false);
+                    Thread.currentThread().interrupt();
                 } catch (InterruptedException ie) {
                     Flogger.atWarning().withCause(ie).log("ER-CT-0002");
                     setActive(false);
@@ -49,6 +50,7 @@ public class CommandTransmitter extends Activable implements Runnable {
                     setActive(false);
                 } catch (Exception e) {
                     Flogger.atWarning().withCause(e).log("ER-CT-0004");
+                    setActive(false);
                 }
             }
         } catch (IOException e) {

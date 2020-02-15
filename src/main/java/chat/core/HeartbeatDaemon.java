@@ -31,6 +31,7 @@ public class HeartbeatDaemon extends Activable implements Runnable {
                 setActive(false);
             } catch (Exception e) {
                 Flogger.atWarning().withCause(e).log("ER-HD-0000");
+                setActive(false);
             }
         }
     }

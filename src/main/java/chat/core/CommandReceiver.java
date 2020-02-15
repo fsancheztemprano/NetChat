@@ -24,31 +24,34 @@ public class CommandReceiver extends Activable implements Runnable {
     @Override
     public void run() {
         try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(socketManager.getInputStream()));
-            setActive(true);
-            while (isActive()) {
-                try {
-                    AppPacket receivedMessage = (AppPacket) objectInputStream.readObject();
-                    System.out.println("Received: " + receivedMessage);
-                    socketManager.updateHeartbeatDaemonTime();
+            if (socketManager.isSocketOpen()) {
 
-                    inboundCommandQueue.put(receivedMessage);
-                } catch (SocketException se) {
-                    setActive(false);
-                    Flogger.atWarning().withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost
-                    Thread.currentThread().interrupt();
-                } catch (IOException ioe) {
-                    setActive(false);
-                    Flogger.atWarning().withCause(ioe).log("ER-CR-0002");
-                    setActive(false);
-                } catch (ClassNotFoundException cnfe) {
-                    Flogger.atWarning().withCause(cnfe).log("ER-CR-0003");
-                    setActive(false);
-                } catch (InterruptedException ie) {
-                    Flogger.atWarning().withCause(ie).log("ER-CR-0004");
-                    setActive(false);
-                } catch (Exception e) {
-                    Flogger.atWarning().withCause(e).log("ER-CR-0000");
+                ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(socketManager.getInputStream()));
+                setActive(true);
+                while (isActive()) {
+                    try {
+                        AppPacket receivedMessage = (AppPacket) objectInputStream.readObject();
+                        System.out.println("Received: " + receivedMessage);
+                        socketManager.updateHeartbeatDaemonTime();
+
+                        inboundCommandQueue.put(receivedMessage);
+                    } catch (SocketException se) {
+                        setActive(false);
+                        Flogger.atWarning().withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost
+                        Thread.currentThread().interrupt();
+                    } catch (IOException ioe) {
+                        setActive(false);
+                        Flogger.atWarning().withCause(ioe).log("ER-CR-0002");
+                    } catch (ClassNotFoundException cnfe) {
+                        Flogger.atWarning().withCause(cnfe).log("ER-CR-0003");
+                        setActive(false);
+                    } catch (InterruptedException ie) {
+                        Flogger.atWarning().withCause(ie).log("ER-CR-0004");
+                        setActive(false);
+                    } catch (Exception e) {
+                        Flogger.atWarning().withCause(e).log("ER-CR-0000");
+                        setActive(false);
+                    }
                 }
             }
         } catch (IOException e) {

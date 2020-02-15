@@ -15,8 +15,7 @@ public class ConsoleServer {
             userin = scanner.nextLine();
             Server.getInstance().getServerManager().queueTransmission(userin);
         }
-        Server.getInstance().stopServer();
-        Thread.sleep(1000);
+        new Thread(() -> Server.getInstance().stopServer()).start();
 
         System.out.println("END");
         System.exit(0);

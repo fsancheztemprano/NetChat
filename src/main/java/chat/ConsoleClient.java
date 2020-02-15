@@ -13,7 +13,8 @@ public class ConsoleClient {
         while (!((userin = scanner.nextLine()).equalsIgnoreCase("exit")) && Client.getInstance().isConnected()) {
             Client.getInstance().sendMessage(userin);
         }
-        Client.getInstance().disconnect();
+        new Thread(() -> Client.getInstance().disconnect()).start();
+
         System.out.println("END");
         System.exit(0);
     }
