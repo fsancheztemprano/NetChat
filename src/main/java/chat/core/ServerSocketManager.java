@@ -77,7 +77,7 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
     }
 
     @Override
-    public void serverShutdown() {
+    public synchronized void serverShutdown() {
         if (isActive() || isServerSocketBound() || isServerSocketOpen()) {
             closeServerSocket();
             stopAllClients();

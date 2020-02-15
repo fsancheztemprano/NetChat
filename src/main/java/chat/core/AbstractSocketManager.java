@@ -153,7 +153,7 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
     public void sendHeartbeatPacket() {
         if (!outboundCommandQueue.contains(heartbeatPacket)) {
             try {
-                outboundCommandQueue.put(heartbeatPacket);
+                outboundCommandQueue.put(getHeartbeatPacket());
             } catch (InterruptedException e) {
                 Flogger.atInfo().withCause(e).log("ER-WSM-0007");
             }
@@ -221,7 +221,7 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
 
 
     @Override
-    public void updateHeartbeatDaemonTime() {
+    public synchronized void updateHeartbeatDaemonTime() {
         heartbeatDaemon.updateHeartBeatTime();
     }
 

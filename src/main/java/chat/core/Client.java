@@ -18,7 +18,7 @@ public class Client {
         return instance;
     }
 
-    private ClientSocketManager clientSocketManager = null;
+    private volatile ClientSocketManager clientSocketManager = null;
 
     public void connect() {
         disconnect();

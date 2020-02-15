@@ -27,7 +27,6 @@ public class WorkerSocketManager extends AbstractSocketManager {
             managerPool          = Executors.newFixedThreadPool(3);
 
             initializeChildProcesses();
-            workerList.add(this);
         } catch (IOException e) {
             e.printStackTrace();
             stopSocketManager();

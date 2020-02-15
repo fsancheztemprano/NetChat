@@ -27,7 +27,7 @@ class ClientSocketManager extends AbstractSocketManager {
     }
 
     @Override
-    public void startSocketManager() {
+    public synchronized void startSocketManager() {
         managedSocket = new Socket();
         InetSocketAddress addr = new InetSocketAddress(hostname, port);
         log("Conectando: " + addr.getAddress());

@@ -18,7 +18,7 @@ public class Server {
         return instance;
     }
 
-    private static ServerSocketManager serverManager;
+    private volatile ServerSocketManager serverManager;
 
     public ServerSocketManager getServerManager() {
         return serverManager;
