@@ -18,8 +18,7 @@ public class Server {
         return instance;
     }
 
-
-    private volatile ServerSocketManager serverManager;
+    private static ServerSocketManager serverManager;
 
     public ServerSocketManager getServerManager() {
         return serverManager;
@@ -28,18 +27,17 @@ public class Server {
     public void startServer() {
         stopServer();
         serverManager = new ServerSocketManager();
-        serverManager.start();
+        new Thread(serverManager).start();
     }
 
     public void stopServer() {
         if (serverManager != null) {
             serverManager.serverShutdown();
-            serverManager.interrupt();
             serverManager = null;
         }
     }
 
     public boolean isServerAlive() {
-        return serverManager != null && serverManager.isManagerAlive();
+        return serverManager != null && serverManager.isActive();
     }
 }

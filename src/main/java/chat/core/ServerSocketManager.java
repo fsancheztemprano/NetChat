@@ -1,9 +1,9 @@
 package chat.core;
 
-import chat.model.ActivableThread;
+import chat.model.ActivableNotifier;
 import chat.model.AppPacket;
 import chat.model.IServerSocketManager;
-import chat.model.IServerStatusListener;
+import chat.model.ProtocolSignal;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -15,8 +15,9 @@ import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import tools.log.Flogger;
 
-class ServerSocketManager extends ActivableThread implements IServerSocketManager {
+public class ServerSocketManager extends ActivableNotifier implements IServerSocketManager, Runnable {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
@@ -30,25 +31,13 @@ class ServerSocketManager extends ActivableThread implements IServerSocketManage
     private BlockingQueue<AppPacket> serverCommandQueue;
     private ServerCommandProcessor serverCommandProcessor;
 
-    public ServerSocketManager() {
-        workerList             = new ArrayBlockingQueue<>(Globals.MAX_ACTIVE_CLIENTS);
-        serverCommandQueue     = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-        serverCommandProcessor = new ServerCommandProcessor(this);
-    }
-
-    @Override
-    public BlockingQueue<AppPacket> getServerCommandQueue() {
-        return serverCommandQueue;
-    }
-
-    @Override
-    public void transmitToAllClients(AppPacket appPacket) {
-        workerList.forEach(worker -> worker.queueTransmission(appPacket));
-    }
-
     @Override
     public void run() {
         try {
+            workerList             = new ArrayBlockingQueue<>(Globals.MAX_ACTIVE_CLIENTS);
+            serverCommandQueue     = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+            serverCommandProcessor = new ServerCommandProcessor(this);
+
             log("Creando socket servidor. Clientes Max: " + Globals.MAX_ACTIVE_CLIENTS);
             serverSocket      = new ServerSocket();
             inetSocketAddress = (hostname.length() > 6 && InetAddress.getByName(hostname).isReachable(100))
@@ -57,18 +46,15 @@ class ServerSocketManager extends ActivableThread implements IServerSocketManage
 
             log("Realizando el bind: " + inetSocketAddress.getAddress() + ":" + inetSocketAddress.getPort());
             serverSocket.bind(inetSocketAddress);
-            serverCommandProcessor.start();
+            new Thread(serverCommandProcessor).start();
             setActive(true);
-            notifyServerStatus(isActive());
-            notifyActiveClients(activeClients);
-
             log("Aceptando conexiones: " + serverSocket.getLocalSocketAddress().toString());
             while (isActive()) {
                 Socket clientSocket = serverSocket.accept();
                 clientSocket.setKeepAlive(true);
                 log("Conexion entrante: " + clientSocket.getRemoteSocketAddress());
-                WorkerSocketManager workerSocketManager = new WorkerSocketManager(clientSocket, serverCommandQueue, workerList);
-                if (workerList.add(workerSocketManager))
+                WorkerSocketManager workerSocketManager = new WorkerSocketManager(this, clientSocket);
+                if (!workerList.contains(workerSocketManager) && workerList.add(workerSocketManager))
                     workerSocketManager.startSocketManager();
             }
         } catch (IllegalStateException ise) {
@@ -84,103 +70,86 @@ class ServerSocketManager extends ActivableThread implements IServerSocketManage
         } catch (IOException ioe) {
             log("Deteniendo Servidor");
         } catch (Exception e) {
-            e.printStackTrace();
+            Flogger.atInfo().withCause(e).log("ER-SSM-0000");
         } finally {
-            killServer();
-        }
-    }
-
-    @Override
-    public boolean isManagerAlive() {
-        return serverSocket != null && serverSocket.isBound();
-    }
-
-    private synchronized void killServer() {
-        killServerSocket();
-        killAllClients();
-        killCommandProcessor();
-
-        listener               = Optional.empty();
-        serverSocket           = null;
-        inetSocketAddress      = null;
-        workerList             = null;
-        serverCommandQueue     = null;
-        serverCommandProcessor = null;
-    }
-
-    private void killAllClients() {
-        workerList.forEach(WorkerSocketManager::stopSocketManager);
-        workerList.clear();
-    }
-
-
-    private void killServerSocket() {
-        log("Cerrando el socket servidor");
-        try {
-            if (serverSocket != null) {
-                serverSocket.close();
-                log("Socket Cerrado");
-            }
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        } finally {
-            setActive(false);
-            notifyServerStatus(this.isManagerAlive());
-            log("Server Thread Terminado");
-        }
-    }
-
-    private void killCommandProcessor() {
-        try {
-            if (serverCommandProcessor != null)
-                serverCommandProcessor.interrupt();
-            if (serverCommandQueue != null)
-                serverCommandQueue.clear();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            serverCommandProcessor = null;
+            serverShutdown();
         }
     }
 
     @Override
     public void serverShutdown() {
-        setActive(false);
-        try {
-            if (serverSocket != null)
-                serverSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            log("Server shutdown : " + (this.isManagerAlive() ? "fail" : "success"));
+        if (isActive() || isServerSocketBound() || isServerSocketOpen()) {
+            closeServerSocket();
+            stopAllClients();
+            stopCommandProcessor();
+
+            listener               = Optional.empty();
+            serverSocket           = null;
+            inetSocketAddress      = null;
+            workerList             = null;
+            serverCommandQueue     = null;
+            serverCommandProcessor = null;
         }
     }
 
-    private void log(String msg) {
-        System.out.println(msg);
-        notifyLogOutput(msg);
+    @Override
+    public BlockingQueue<AppPacket> getServerCommandQueue() {
+        return serverCommandQueue;
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private Optional<IServerStatusListener> listener = Optional.empty();
-
-    public void subscribe(IServerStatusListener iServerStatusListener) {
-        listener = (iServerStatusListener != null
-                    ? Optional.of(iServerStatusListener)
-                    : Optional.empty());
+    @Override
+    public BlockingQueue<WorkerSocketManager> getWorkerList() {
+        return workerList;
     }
 
-    private void notifyLogOutput(String msg) {
-        listener.ifPresent(listener -> listener.onLogOutput(msg));
+    @Override
+    public void transmitToAllClients(AppPacket appPacket) {
+        workerList.forEach(worker -> worker.queueTransmission(appPacket));
     }
 
-    private void notifyServerStatus(boolean active) {
-        listener.ifPresent(listener -> listener.onStatusChanged(active));
+    public boolean isServerSocketBound() {
+        return serverSocket != null && serverSocket.isBound();
     }
 
-    private void notifyActiveClients(int activeClients) {
+    public boolean isServerSocketOpen() {
+        return serverSocket != null && !serverSocket.isClosed();
+    }
+
+    void closeServerSocket() {
+        log("Cerrando el ServerSocket");
+        if (isServerSocketOpen()) {
+            try {
+                serverSocket.close();
+                setActive(false);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void stopAllClients() {
+        workerList.forEach(WorkerSocketManager::stopSocketManager);
+        workerList.clear();
+    }
+
+    private void stopCommandProcessor() {
+        try {
+            if (serverCommandProcessor != null)
+                serverCommandProcessor.setActive(false);
+        } catch (Exception e) {
+            Flogger.atInfo().withCause(e).log("ER-SSM-000x");
+        }
+    }
+
+    @Override
+    public void notifyActiveClients(int activeClients) {
         listener.ifPresent(listener -> listener.onActiveClientsChange(activeClients));
     }
 
 
+    public void queueTransmission(String message) {
+        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, serverSocket.getLocalSocketAddress(), "server", message);
+        transmitToAllClients(newMessage);
+    }
 }

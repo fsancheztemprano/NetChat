@@ -13,8 +13,11 @@ public class ConsoleServer {
         String userin = "";
         while (!userin.equalsIgnoreCase("exit") && Server.getInstance().isServerAlive()) {
             userin = scanner.nextLine();
+            Server.getInstance().getServerManager().queueTransmission(userin);
         }
         Server.getInstance().stopServer();
+        Thread.sleep(1000);
+
         System.out.println("END");
         System.exit(0);
     }

@@ -2,7 +2,7 @@ package chat.model;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class ActivableThread extends Thread {
+public abstract class Activable implements IActivable {
 
     protected AtomicBoolean active = new AtomicBoolean(false);
 
@@ -14,6 +14,4 @@ public abstract class ActivableThread extends Thread {
         this.active.set(active);
     }
 
-    @Override
-    public abstract void run();
 }

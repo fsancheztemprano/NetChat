@@ -18,11 +18,7 @@ public class Client {
         return instance;
     }
 
-    private volatile ClientSocketManager clientSocketManager = null;
-
-    public ClientSocketManager getClientSocketManager() {
-        return clientSocketManager;
-    }
+    private ClientSocketManager clientSocketManager = null;
 
     public void connect() {
         disconnect();
@@ -43,6 +39,6 @@ public class Client {
 
 
     public boolean isConnected() {
-        return clientSocketManager != null && clientSocketManager.isManagerAlive();
+        return clientSocketManager != null && clientSocketManager.isActive();
     }
 }
