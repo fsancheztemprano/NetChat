@@ -2,7 +2,6 @@ package chat.core;
 
 import chat.model.Activable;
 import chat.model.AppPacket;
-import chat.model.ISocketManager;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,11 +11,11 @@ import tools.log.Flogger;
 
 public class CommandReceiver extends Activable implements Runnable {
 
-    private ISocketManager socketManager;
+    private AbstractSocketManager socketManager;
     public BlockingQueue<AppPacket> inboundCommandQueue;
 
 
-    public CommandReceiver(ISocketManager socketManager) {
+    public CommandReceiver(AbstractSocketManager socketManager) {
         this.socketManager       = socketManager;
         this.inboundCommandQueue = socketManager.getInboundCommandQueue();
     }
@@ -25,16 +24,14 @@ public class CommandReceiver extends Activable implements Runnable {
     public void run() {
         try {
             if (socketManager.isSocketOpen()) {
-
                 ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(socketManager.getInputStream()));
                 setActive(true);
                 while (isActive()) {
                     try {
-                        AppPacket receivedMessage = (AppPacket) objectInputStream.readObject();
-                        System.out.println("Received: " + receivedMessage);
+                        AppPacket appPacket = (AppPacket) objectInputStream.readObject();
                         socketManager.updateHeartbeatDaemonTime();
-
-                        inboundCommandQueue.put(receivedMessage);
+                        socketManager.log("In: " + appPacket.toString());
+                        inboundCommandQueue.put(appPacket);
                     } catch (SocketException se) {
                         setActive(false);
                         Flogger.atWarning().withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost

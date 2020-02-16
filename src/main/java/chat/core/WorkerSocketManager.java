@@ -11,8 +11,10 @@ import tools.log.Flogger;
 public class WorkerSocketManager extends AbstractSocketManager {
 
     private BlockingQueue<WorkerSocketManager> workerList;
+    private IServerSocketManager serverSocketManager;
 
     public WorkerSocketManager(IServerSocketManager serverSocketManager, Socket managedSocket) {
+        this.serverSocketManager = serverSocketManager;
         this.managedSocket       = managedSocket;
         this.inboundCommandQueue = serverSocketManager.getServerCommandQueue();
         this.workerList          = serverSocketManager.getWorkerList();
@@ -29,24 +31,32 @@ public class WorkerSocketManager extends AbstractSocketManager {
             initializeChildProcesses();
             poolUpChildProcesses();
         } catch (IOException e) {
-            Flogger.atInfo().withCause(e).log("ER-WSM-0001");
+            Flogger.atWarning().withCause(e).log("ER-WSM-0001");
             stopSocketManager();
         } catch (Exception e) {
-            Flogger.atInfo().withCause(e).log("ER-WSM-0000");
+            Flogger.atWarning().withCause(e).log("ER-WSM-0000");
         }
     }
 
     @Override
-    public synchronized void stopSocketManager() {
+    public void stopSocketManager() {
         if (isActive()) {
             try {
-                workerList.remove(this);
+                serverSocketManager.removeWorker(this);
                 deactivateChildProcesses();
-                closePool();
                 closeSocket();
+                closePool();
             } catch (Exception e) {
-                Flogger.atInfo().withCause(e).log("ER-WSM-0002");
+                Flogger.atWarning().withCause(e).log("ER-WSM-0002");
+            } finally {
+                setActive(false);
+                Thread.currentThread().interrupt();
             }
         }
+    }
+
+    @Override
+    protected void notifySocketStatus(boolean active) {
+
     }
 }

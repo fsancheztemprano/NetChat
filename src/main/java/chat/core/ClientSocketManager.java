@@ -1,5 +1,6 @@
 package chat.core;
 
+import chat.model.IClientStatusListener;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -10,21 +11,11 @@ import tools.log.Flogger;
 
 class ClientSocketManager extends AbstractSocketManager {
 
-    private String hostname;
-    private int port;
+    private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
+    private int port = Globals.DEFAULT_SERVER_PORT;
 
     private ClientCommandProcessor clientCommandProcessor;
 
-    public ClientSocketManager() {
-
-        hostname = Globals.DEFAULT_SERVER_HOSTNAME;
-        port     = Globals.DEFAULT_SERVER_PORT;
-    }
-
-    public ClientSocketManager(String hostname, int port) {
-        this.hostname = hostname;
-        this.port     = port;
-    }
 
     @Override
     public synchronized void startSocketManager() {
@@ -44,25 +35,41 @@ class ClientSocketManager extends AbstractSocketManager {
             initializeChildProcesses();
             poolUpChildProcesses();
         } catch (ConnectException ce) {
-            Flogger.atInfo().withCause(ce).log("ER-CSM-0002");
+            Flogger.atWarning().withCause(ce).log("ER-CSM-0002");
             stopSocketManager();
         } catch (IOException ioe) {
-            Flogger.atInfo().withCause(ioe).log("ER-CSM-0001");
+            Flogger.atWarning().withCause(ioe).log("ER-CSM-0001");
         } catch (Exception e) {
-            Flogger.atInfo().withCause(e).log("ER-CSM-0000");
+            Flogger.atWarning().withCause(e).log("ER-CSM-0000");
         }
 
     }
 
     @Override
-    public synchronized void stopSocketManager() {
+    public void stopSocketManager() {
         if (isActive() || isSocketOpen()) {
             try {
                 deactivateChildProcesses();
-                closePool();
                 closeSocket();
+                closePool();
+
+                managedSocket        = null;
+                managerPool          = null;
+                heartbeatPacket      = null;
+                heartbeatDaemon      = null;
+                commandReceiver      = null;
+                commandTransmitter   = null;
+                inboundCommandQueue  = null;
+                outboundCommandQueue = null;
+                inputStream          = null;
+                outputStream         = null;
             } catch (Exception e) {
-                Flogger.atInfo().withCause(e).log("ER-CSM-0003");
+                Flogger.atWarning().withCause(e).log("ER-CSM-0003");
+            } finally {
+                log("Conexion Finalizada");
+                setActive(false);
+                listener = null;
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -85,5 +92,19 @@ class ClientSocketManager extends AbstractSocketManager {
     protected void poolUpChildProcesses() {
         managerPool.submit(clientCommandProcessor);
         super.poolUpChildProcesses();
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    void notifyChatMessageReceived(String username, String message) {
+        if (listener != null && listener instanceof IClientStatusListener) {
+            ((IClientStatusListener) listener).onChatMessageReceived(username, message);
+        }
     }
 }

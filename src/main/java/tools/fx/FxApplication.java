@@ -1,6 +1,7 @@
 package tools.fx;
 
 import javafx.application.Application;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -35,7 +36,7 @@ public abstract class FxApplication extends Application {
         getMainStage().setScene(activeScene);
     }
 
-    public static <T extends Region> void setPaneWithNewScene(T pane) {
+    public static <T extends Parent> void setPaneWithNewScene(T pane) {
         setActiveScene(new Scene(pane));
     }
 

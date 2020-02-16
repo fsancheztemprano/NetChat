@@ -11,7 +11,8 @@ public class HeartbeatDaemon extends Activable implements Runnable {
     private LocalDateTime lastHeartbeat = null;
 
     public HeartbeatDaemon(ISocketManager socketManager) {
-        this.manager = socketManager;
+        this.manager  = socketManager;
+        lastHeartbeat = LocalDateTime.now().minusSeconds(Globals.HEARTBEAT_DELAY - Globals.HEARTBEAT_FIRST);
 
     }
 

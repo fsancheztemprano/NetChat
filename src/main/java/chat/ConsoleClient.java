@@ -12,11 +12,11 @@ public class ConsoleClient {
 
         String message = "";
 
-        Client.getInstance().connect();
-        while (!((message = scanner.nextLine()).equalsIgnoreCase("exit")) && Client.getInstance().isConnected()) {
-            Client.getInstance().sendMessage(username, message);
+        Client.inst().connect();
+        while (!((message = scanner.nextLine()).equalsIgnoreCase("exit")) && Client.inst().isConnected()) {
+            Client.inst().sendMessage(username, message);
         }
-        new Thread(() -> Client.getInstance().disconnect()).start();
+        new Thread(() -> Client.inst().disconnect()).start();
 
         System.out.println("END");
         System.exit(0);

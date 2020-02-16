@@ -14,4 +14,6 @@ public interface IServerSocketManager extends IActivable {
     BlockingQueue<WorkerSocketManager> getWorkerList();
 
     void notifyLogOutput(String output);
+
+    void removeWorker(WorkerSocketManager workerSocketManager);
 }

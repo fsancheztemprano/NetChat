@@ -1,6 +1,6 @@
 package chat.core;
 
-import chat.model.IServerStatusListener;
+import chat.model.IClientStatusListener;
 
 public class Client {
 
@@ -9,7 +9,7 @@ public class Client {
     private Client() {
     }
 
-    public static Client getInstance() {
+    public static Client inst() {
         if (instance == null) {
             synchronized (Client.class) {
                 if (instance == null) {
@@ -20,19 +20,28 @@ public class Client {
         return instance;
     }
 
-    private volatile ClientSocketManager clientSocketManager = null;
+    private ClientSocketManager clientSocketManager = null;
+    private String hostname;
+    private int port;
+    private IClientStatusListener listener = null;
+
 
     public void connect() {
-        disconnect();
+        if (clientSocketManager != null)
+            disconnect();
         clientSocketManager = new ClientSocketManager();
+        clientSocketManager.setHostname(hostname);
+        clientSocketManager.setPort(port);
+        clientSocketManager.subscribe(listener);
         new Thread(() -> clientSocketManager.startSocketManager()).start();
     }
 
     public void disconnect() {
         if (clientSocketManager != null) {
-            new Thread(() -> clientSocketManager.stopSocketManager()).start();
-            clientSocketManager = null;
+            ClientSocketManager c = clientSocketManager;
+            new Thread(c::stopSocketManager).start();
         }
+        clientSocketManager = null;
     }
 
 
@@ -40,11 +49,19 @@ public class Client {
         return clientSocketManager != null && clientSocketManager.isActive();
     }
 
-    public void subscribe(IServerStatusListener serverStatusListener) {
-        clientSocketManager.subscribe(serverStatusListener);
-    }
-
     public void sendMessage(String username, String message) {
         new Thread(() -> clientSocketManager.queueTransmission(username, message)).start();
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void setListener(IClientStatusListener listener) {
+        this.listener = listener;
     }
 }

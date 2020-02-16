@@ -20,7 +20,7 @@ public class Server {
         return instance;
     }
 
-    private volatile ServerSocketManager serverManager;
+    private ServerSocketManager serverManager;
     private String hostname;
     private int port;
     private IServerStatusListener listener = null;

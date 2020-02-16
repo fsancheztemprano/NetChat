@@ -2,7 +2,6 @@ package chat.core;
 
 import chat.model.Activable;
 import chat.model.AppPacket;
-import chat.model.ISocketManager;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -13,10 +12,10 @@ import tools.log.Flogger;
 
 public class CommandTransmitter extends Activable implements Runnable {
 
-    private ISocketManager socketManager;
+    private AbstractSocketManager socketManager;
     private BlockingQueue<AppPacket> outboundCommandQueue;
 
-    public CommandTransmitter(ISocketManager socketManager) {
+    public CommandTransmitter(AbstractSocketManager socketManager) {
         this.socketManager        = socketManager;
         this.outboundCommandQueue = socketManager.getOutboundCommandQueue();
     }
@@ -36,7 +35,7 @@ public class CommandTransmitter extends Activable implements Runnable {
                         objectOutputStream.writeObject(appPacket);
                         objectOutputStream.flush();
                         socketManager.updateHeartbeatDaemonTime();
-                        System.out.println("Transmitted: " + appPacket);                    //TODO log output
+                        socketManager.log("Out: " + appPacket.toString());
                     }
                 } catch (SocketException se) {
                     Flogger.atWarning().withCause(se).log("ER-CT-0001");       //(outputStream closed) TODO msg:Server connection lost

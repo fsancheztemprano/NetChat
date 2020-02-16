@@ -137,10 +137,10 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
         try {
             outboundCommandQueue.put(appPacket);
         } catch (InterruptedException e) {
-            Flogger.atInfo().withCause(e).log("ER-ASM-0001");
+            Flogger.atWarning().withCause(e).log("ER-ASM-0001");
 
         } catch (Exception e) {
-            Flogger.atInfo().withCause(e).log("ER-ASM-0000");
+            Flogger.atWarning().withCause(e).log("ER-ASM-0000");
         }
 
     }
@@ -158,10 +158,10 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
             try {
                 outboundCommandQueue.put(getHeartbeatPacket());
             } catch (InterruptedException e) {
-                Flogger.atInfo().withCause(e).log("ER-ASM-0003");
+                Flogger.atWarning().withCause(e).log("ER-ASM-0003");
 
             } catch (Exception e) {
-                Flogger.atInfo().withCause(e).log("ER-ASM-0002");
+                Flogger.atWarning().withCause(e).log("ER-ASM-0002");
             }
         }
     }
@@ -174,14 +174,19 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
 
     public void closeSocket() {
         try {
-            if (isSocketOpen()) {
+            if (inputStream != null)
+                inputStream.close();
+            if (outputStream != null)
+                outputStream.close();
+            if (managedSocket != null)
                 managedSocket.close();
-            }
-            setActive(false);
+
         } catch (IOException e) {
-            Flogger.atInfo().withCause(e).log("ER-ASM-0005");
+            Flogger.atWarning().withCause(e).log("ER-ASM-0005");
         } catch (Exception e) {
-            Flogger.atInfo().withCause(e).log("ER-ASM-0004");
+            Flogger.atWarning().withCause(e).log("ER-ASM-0004");
+        } finally {
+            setActive(false);
         }
     }
 
@@ -190,23 +195,23 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
             managerPool.shutdown(); // Disable new tasks from being submitted
             try {
                 // Wait a while for existing tasks to terminate
-                if (!managerPool.awaitTermination(60, TimeUnit.SECONDS)) {
+                if (!managerPool.awaitTermination(30, TimeUnit.SECONDS)) {
                     managerPool.shutdownNow(); // Cancel currently executing tasks
                     // Wait a while for tasks to respond to being cancelled
-                    if (!managerPool.awaitTermination(60, TimeUnit.SECONDS)) {
+                    if (!managerPool.awaitTermination(30, TimeUnit.SECONDS)) {
                         System.err.println("Pool did not terminate");
                     }
                 }
             } catch (InterruptedException ie) {
                 // (Re-)Cancel if current thread also interrupted
                 managerPool.shutdownNow();
-                Flogger.atInfo().withCause(ie).log("ER-ASM-0008");
+                Flogger.atWarning().withCause(ie).log("ER-ASM-0008");
             } catch (NullPointerException npw) {
-                Flogger.atInfo().withCause(npw).log("ER-ASM-0007");
+                Flogger.atWarning().withCause(npw).log("ER-ASM-0007");
             } catch (Exception e) {
-                Flogger.atInfo().withCause(e).log("ER-ASM-0006");
+                Flogger.atWarning().withCause(e).log("ER-ASM-0006");
             } finally {
-                Thread.currentThread().interrupt();
+//                Thread.currentThread().interrupt();
             }
         }
     }

@@ -8,6 +8,10 @@ public abstract class ActivableNotifier extends Activable {
         listener = statusListener;
     }
 
+    public void unsubscribe() {
+        listener = null;
+    }
+
     protected void notifySocketStatus(boolean active) {
         if (listener != null)
             listener.onStatusChanged(active);
@@ -24,7 +28,7 @@ public abstract class ActivableNotifier extends Activable {
         notifySocketStatus(active);
     }
 
-    protected void log(String output) {
+    public void log(String output) {
         System.out.println(output);
         notifyLogOutput(output);
     }

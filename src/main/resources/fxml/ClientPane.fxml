@@ -29,8 +29,8 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
               <children>
-                <TextField fx:id="txtFieldPort" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                <TextField fx:id="txtFieldIP" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+                <TextField fx:id="txtFieldPort" text="5555" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                <TextField fx:id="txtFieldIP" text="localhost" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
                 <Label text="IP " />
                 <Label text="Port" GridPane.rowIndex="1" />
               </children>
@@ -51,6 +51,6 @@
         </VBox>
       </content>
     </Tab>
-    <Tab fx:id="tabClient" text="Chat" />
+    <Tab fx:id="tabClient" disable="true" text="Chat" />
   </tabs>
 </TabPane>

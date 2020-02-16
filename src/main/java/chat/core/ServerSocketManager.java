@@ -1,6 +1,6 @@
 package chat.core;
 
-import chat.model.ActivableNotifierServer;
+import chat.model.ActivableNotifier;
 import chat.model.AppPacket;
 import chat.model.AppPacket.ProtocolSignal;
 import chat.model.IServerSocketManager;
@@ -17,7 +17,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import tools.log.Flogger;
 
-public class ServerSocketManager extends ActivableNotifierServer implements IServerSocketManager, Runnable {
+public class ServerSocketManager extends ActivableNotifier implements IServerSocketManager, Runnable {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
@@ -30,13 +30,6 @@ public class ServerSocketManager extends ActivableNotifierServer implements ISer
 
     private BlockingQueue<AppPacket> serverCommandQueue;
     private ServerCommandProcessor serverCommandProcessor;
-
-    public ServerSocketManager() {
-    }
-
-    public ServerSocketManager(IServerStatusListener listener) {
-        this.listener = listener;
-    }
 
     @Override
     public void run() {
@@ -61,11 +54,16 @@ public class ServerSocketManager extends ActivableNotifierServer implements ISer
                 clientSocket.setKeepAlive(true);
                 log("Conexion entrante: " + clientSocket.getRemoteSocketAddress());
                 WorkerSocketManager workerSocketManager = new WorkerSocketManager(this, clientSocket);
-                if (!workerList.contains(workerSocketManager) && workerList.add(workerSocketManager))
+                if (workerList.offer(workerSocketManager)) {
+                    log("Conexion aceptada: " + clientSocket.getRemoteSocketAddress());
+                    workerSocketManager.subscribe(listener);
                     workerSocketManager.startSocketManager();
+                    notifyActiveClientsChange(++activeClients);
+                } else {
+                    log("Conexion Rechazada, Servidor Lleno. (" + Globals.MAX_ACTIVE_CLIENTS + ")");
+                    clientSocket.close();
+                }
             }
-        } catch (IllegalStateException ise) {
-            log("Rejecting incoming con, Server Full");
         } catch (BindException be) {
             log("Unbindable Socket Address: " + inetSocketAddress);
         } catch (IllegalArgumentException iae) {
@@ -77,7 +75,7 @@ public class ServerSocketManager extends ActivableNotifierServer implements ISer
         } catch (IOException ioe) {
             log("Deteniendo Servidor");
         } catch (Exception e) {
-            Flogger.atInfo().withCause(e).log("ER-SSM-0000");
+            Flogger.atWarning().withCause(e).log("ER-SSM-0000");
         } finally {
             serverShutdown();
         }
@@ -98,8 +96,9 @@ public class ServerSocketManager extends ActivableNotifierServer implements ISer
                 serverCommandQueue     = null;
                 serverCommandProcessor = null;
             } catch (Exception e) {
-                Flogger.atInfo().withCause(e).log("ER-SSM-0001");
+                Flogger.atWarning().withCause(e).log("ER-SSM-0001");
             } finally {
+                setActive(false);
                 Thread.currentThread().interrupt();
             }
         }
@@ -113,6 +112,13 @@ public class ServerSocketManager extends ActivableNotifierServer implements ISer
     @Override
     public BlockingQueue<WorkerSocketManager> getWorkerList() {
         return workerList;
+    }
+
+    @Override
+    public void removeWorker(WorkerSocketManager workerSocketManager) {
+        log("Conexion finalizada: " + workerSocketManager.managedSocket.getRemoteSocketAddress());
+        workerList.remove(workerSocketManager);
+        notifyActiveClientsChange(--activeClients);
     }
 
     @Override
@@ -135,9 +141,9 @@ public class ServerSocketManager extends ActivableNotifierServer implements ISer
                 serverSocket.close();
                 setActive(false);
             } catch (IOException e) {
-                Flogger.atInfo().withCause(e).log("ER-SSM-0004");
+                Flogger.atWarning().withCause(e).log("ER-SSM-0004");
             } catch (Exception e) {
-                Flogger.atInfo().withCause(e).log("ER-SSM-0003");
+                Flogger.atWarning().withCause(e).log("ER-SSM-0003");
             }
         }
 
@@ -159,19 +165,17 @@ public class ServerSocketManager extends ActivableNotifierServer implements ISer
         transmitToAllClients(newMessage);
     }
 
-    public String getHostname() {
-        return hostname;
-    }
-
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }
 
-    public int getPort() {
-        return port;
-    }
-
     public void setPort(int port) {
         this.port = port;
+    }
+
+    void notifyActiveClientsChange(int activeClients) {
+        if (listener != null && listener instanceof IServerStatusListener) {
+            ((IServerStatusListener) listener).onActiveClientsChange(activeClients);
+        }
     }
 }
