@@ -3,13 +3,13 @@ plugins {
     id 'application'
     id 'idea'
 }
-
 group 'dev.example'
+
 version 'v0.0.1-snap'
 
 sourceCompatibility = 1.8
 
-mainClassName = "App"
+mainClassName = "chat.ui.MainUI"
 
 repositories {
     mavenCentral()
@@ -17,8 +17,15 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-
     compile 'com.google.flogger:flogger:0.4'
     compile 'com.google.flogger:flogger-system-backend:0.4'
+}
 
+jar{
+    manifest{
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'chat.ui.MainUI'
+        )
+    }
 }
