@@ -1,5 +1,7 @@
 package chat.core;
 
+import chat.model.IServerStatusListener;
+
 public class Server {
 
     private static Server instance;
@@ -7,7 +9,7 @@ public class Server {
     private Server() {
     }
 
-    public static Server getInstance() {
+    public static Server inst() {
         if (instance == null) {
             synchronized (Server.class) {
                 if (instance == null) {
@@ -19,6 +21,9 @@ public class Server {
     }
 
     private volatile ServerSocketManager serverManager;
+    private String hostname;
+    private int port;
+    private IServerStatusListener listener = null;
 
     public ServerSocketManager getServerManager() {
         return serverManager;
@@ -27,17 +32,36 @@ public class Server {
     public void startServer() {
         stopServer();
         serverManager = new ServerSocketManager();
+        serverManager.setHostname(hostname);
+        serverManager.setPort(port);
+        serverManager.subscribe(listener);
         new Thread(serverManager).start();
     }
 
     public void stopServer() {
         if (serverManager != null) {
-            serverManager.serverShutdown();
-            serverManager = null;
+            new Thread(() -> {
+                serverManager.serverShutdown();
+                serverManager = null;
+            }).start();
         }
     }
 
     public boolean isServerAlive() {
         return serverManager != null && serverManager.isActive();
     }
+
+    public void setListener(IServerStatusListener listener) {
+        this.listener = listener;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+
 }

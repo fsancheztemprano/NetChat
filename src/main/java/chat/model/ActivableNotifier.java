@@ -1,24 +1,21 @@
 package chat.model;
 
-import java.util.Optional;
-
 public abstract class ActivableNotifier extends Activable {
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    protected Optional<IServerStatusListener> listener = Optional.empty();
+    protected IStatusListener listener = null;
 
-    public void subscribe(IServerStatusListener serverStatusListener) {
-        listener = (serverStatusListener != null
-                    ? Optional.of(serverStatusListener)
-                    : Optional.empty());
+    public synchronized <T extends IStatusListener> void subscribe(T statusListener) {
+        listener = statusListener;
     }
 
     protected void notifySocketStatus(boolean active) {
-        listener.ifPresent(listener -> listener.onStatusChanged(active));
+        if (listener != null)
+            listener.onStatusChanged(active);
     }
 
-    protected void notifyLogOutput(String output) {
-        listener.ifPresent(listener -> listener.onLogOutput(output));
+    public void notifyLogOutput(String output) {
+        if (listener != null)
+            listener.onLogOutput(output);
     }
 
     @Override

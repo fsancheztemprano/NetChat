@@ -27,6 +27,7 @@ public class ServerCommandProcessor extends AbstractCommandProcessor {
                                                                    appPacket.getUsername(),
                                                                    appPacket.getMessage()));
                 serverManager.transmitToAllClients(appPacket);
+                serverManager.notifyLogOutput(appPacket.toString());
                 break;
             case CLIENT_QUIT:
                 ChatService.getInstance().userQuit(appPacket.getUsername());

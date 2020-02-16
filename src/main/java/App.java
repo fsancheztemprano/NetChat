@@ -5,7 +5,7 @@ public class App {
 
     public static void main(String[] args) throws UnknownHostException {
         System.out.println("Hello World");
-        Server.getInstance().startServer();
+        Server.inst().startServer();
 
     }
 }

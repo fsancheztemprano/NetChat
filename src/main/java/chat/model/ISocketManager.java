@@ -10,7 +10,7 @@ public interface ISocketManager extends IActivable {
 
     void stopSocketManager();
 
-    void queueTransmission(String message);
+    void queueTransmission(String username, String message);
 
     void sendHeartbeatPacket();
 

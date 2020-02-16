@@ -1,9 +1,10 @@
 package chat.core;
 
-import chat.model.ActivableNotifier;
+import chat.model.ActivableNotifierServer;
 import chat.model.AppPacket;
+import chat.model.AppPacket.ProtocolSignal;
 import chat.model.IServerSocketManager;
-import chat.model.ProtocolSignal;
+import chat.model.IServerStatusListener;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -12,12 +13,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import tools.log.Flogger;
 
-public class ServerSocketManager extends ActivableNotifier implements IServerSocketManager, Runnable {
+public class ServerSocketManager extends ActivableNotifierServer implements IServerSocketManager, Runnable {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
@@ -30,6 +30,13 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
 
     private BlockingQueue<AppPacket> serverCommandQueue;
     private ServerCommandProcessor serverCommandProcessor;
+
+    public ServerSocketManager() {
+    }
+
+    public ServerSocketManager(IServerStatusListener listener) {
+        this.listener = listener;
+    }
 
     @Override
     public void run() {
@@ -84,7 +91,7 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
                 stopAllClients();
                 stopCommandProcessor();
 
-                listener               = Optional.empty();
+                listener               = null;
                 serverSocket           = null;
                 inetSocketAddress      = null;
                 workerList             = null;
@@ -92,6 +99,8 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
                 serverCommandProcessor = null;
             } catch (Exception e) {
                 Flogger.atInfo().withCause(e).log("ER-SSM-0001");
+            } finally {
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -140,18 +149,29 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
     }
 
     private void stopCommandProcessor() {
-            if (serverCommandProcessor != null)
-                serverCommandProcessor.setActive(false);
-    }
-
-    @Override
-    public void notifyActiveClients(int activeClients) {
-        listener.ifPresent(listener -> listener.onActiveClientsChange(activeClients));
+        if (serverCommandProcessor != null)
+            serverCommandProcessor.setActive(false);
     }
 
 
     public void queueTransmission(String message) {
         AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, serverSocket.getLocalSocketAddress(), "server", message);
         transmitToAllClients(newMessage);
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }

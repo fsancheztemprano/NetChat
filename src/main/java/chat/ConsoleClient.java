@@ -6,12 +6,15 @@ import java.util.Scanner;
 public class ConsoleClient {
 
     public static void main(String[] args) {
-        Client.getInstance().connect();
         Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter username: ");
+        String username = scanner.nextLine();
 
-        String userin = "";
-        while (!((userin = scanner.nextLine()).equalsIgnoreCase("exit")) && Client.getInstance().isConnected()) {
-            Client.getInstance().sendMessage(userin);
+        String message = "";
+
+        Client.getInstance().connect();
+        while (!((message = scanner.nextLine()).equalsIgnoreCase("exit")) && Client.getInstance().isConnected()) {
+            Client.getInstance().sendMessage(username, message);
         }
         new Thread(() -> Client.getInstance().disconnect()).start();
 

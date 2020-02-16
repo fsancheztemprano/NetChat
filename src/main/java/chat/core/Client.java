@@ -1,5 +1,7 @@
 package chat.core;
 
+import chat.model.IServerStatusListener;
+
 public class Client {
 
     private static Client instance;
@@ -23,22 +25,26 @@ public class Client {
     public void connect() {
         disconnect();
         clientSocketManager = new ClientSocketManager();
-        clientSocketManager.startSocketManager();
+        new Thread(() -> clientSocketManager.startSocketManager()).start();
     }
 
     public void disconnect() {
         if (clientSocketManager != null) {
-            clientSocketManager.stopSocketManager();
+            new Thread(() -> clientSocketManager.stopSocketManager()).start();
             clientSocketManager = null;
         }
-    }
-
-    public void sendMessage(String message) {
-        clientSocketManager.queueTransmission(message);
     }
 
 
     public boolean isConnected() {
         return clientSocketManager != null && clientSocketManager.isActive();
+    }
+
+    public void subscribe(IServerStatusListener serverStatusListener) {
+        clientSocketManager.subscribe(serverStatusListener);
+    }
+
+    public void sendMessage(String username, String message) {
+        new Thread(() -> clientSocketManager.queueTransmission(username, message)).start();
     }
 }

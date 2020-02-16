@@ -8,17 +8,18 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="psp.c_calc2.ui.ServerControl">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chat.ui.ServerControl">
   <children>
     <HBox alignment="CENTER" spacing="10.0" VBox.vgrow="NEVER">
       <children>
-        <TextField fx:id="txtFieldHostname" HBox.hgrow="ALWAYS" />
-        <TextField fx:id="txtFieldPort" minWidth="75.0" prefWidth="75.0" HBox.hgrow="NEVER" />
+        <TextField fx:id="txtFieldHostname" text="localhost" HBox.hgrow="ALWAYS" />
+        <TextField fx:id="txtFieldPort" minWidth="75.0" prefWidth="75.0" text="5555" HBox.hgrow="NEVER" />
       </children>
     </HBox>
     <HBox alignment="CENTER_RIGHT" layoutX="10.0" layoutY="10.0" spacing="10.0" VBox.vgrow="NEVER">
       <children>
-        <Label text="Servidor" />
+        <Label text="Clientes:" />
+        <Label fx:id="labelNumClients" layoutX="118.0" layoutY="14.0" text="0" />
         <Button fx:id="btnServerStart" minWidth="50.0" mnemonicParsing="false" onAction="#btnServerStartAction" prefWidth="50.0" text="Start" HBox.hgrow="ALWAYS" />
         <Button fx:id="btnServerStop" layoutX="102.0" layoutY="20.0" minWidth="50.0" mnemonicParsing="false" onAction="#btnServerStopAction" prefWidth="50.0" text="Stop" />
         <Circle fx:id="circleServerStatus" fill="#ff1f1f" radius="10.0" stroke="BLACK" strokeType="INSIDE" HBox.hgrow="NEVER" />

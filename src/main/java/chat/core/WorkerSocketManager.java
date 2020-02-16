@@ -10,7 +10,6 @@ import tools.log.Flogger;
 
 public class WorkerSocketManager extends AbstractSocketManager {
 
-
     private BlockingQueue<WorkerSocketManager> workerList;
 
     public WorkerSocketManager(IServerSocketManager serverSocketManager, Socket managedSocket) {

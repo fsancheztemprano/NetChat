@@ -11,7 +11,7 @@ public interface IServerSocketManager extends IActivable {
 
     void transmitToAllClients(AppPacket appPacket);
 
-    void notifyActiveClients(int activeClients);
-
     BlockingQueue<WorkerSocketManager> getWorkerList();
+
+    void notifyLogOutput(String output);
 }

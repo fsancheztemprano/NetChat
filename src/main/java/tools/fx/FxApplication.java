@@ -3,11 +3,17 @@ package tools.fx;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 
 public abstract class FxApplication extends Application {
 
     protected static Stage mainStage;
+
+    @Override
+    public void start(Stage primaryStage) {
+        mainStage = primaryStage;
+    }
 
     public static void main(String[] args) {
         launch(args);
@@ -17,8 +23,8 @@ public abstract class FxApplication extends Application {
         return mainStage;
     }
 
-    public static void setMainStage(Stage mainStage) {
-        FxApplication.mainStage = mainStage;
+    public static void setMainStage(Stage stage) {
+        mainStage = stage;
     }
 
     public static Scene getActiveScene() {
@@ -29,11 +35,11 @@ public abstract class FxApplication extends Application {
         getMainStage().setScene(activeScene);
     }
 
-    public static void setPaneWithNewScene(Pane pane) {
+    public static <T extends Region> void setPaneWithNewScene(T pane) {
         setActiveScene(new Scene(pane));
     }
 
-    public static void setPaneOnActiveScene(Pane pane) {
+    public static <T extends Region> void setPaneOnActiveScene(T pane) {
         getActiveScene().setRoot(pane);
     }
 

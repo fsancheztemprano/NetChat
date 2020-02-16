@@ -77,4 +77,12 @@ public class AppPacket implements Serializable {
                ", message='" + message + '\'' +
                '}';
     }
+
+    public enum ProtocolSignal implements Serializable {
+        HEARTBEAT,
+        CLIENT_JOIN,
+        NEW_MESSAGE,
+        CLIENT_QUIT,
+        SERVER_SHUTDOWN
+    }
 }

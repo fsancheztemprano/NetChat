@@ -2,8 +2,8 @@ package chat.core;
 
 import chat.model.ActivableNotifier;
 import chat.model.AppPacket;
+import chat.model.AppPacket.ProtocolSignal;
 import chat.model.ISocketManager;
-import chat.model.ProtocolSignal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -146,8 +146,8 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
     }
 
     @Override
-    public void queueTransmission(String message) {
-        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, managedSocket.getLocalSocketAddress(), "cli", message);
+    public void queueTransmission(String username, String message) {
+        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, managedSocket.getLocalSocketAddress(), username, message);
         queueTransmission(newMessage);
     }
 
