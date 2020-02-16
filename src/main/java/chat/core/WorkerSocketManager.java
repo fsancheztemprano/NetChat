@@ -1,6 +1,5 @@
 package chat.core;
 
-import chat.model.IServerSocketManager;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -11,9 +10,9 @@ import tools.log.Flogger;
 public class WorkerSocketManager extends AbstractSocketManager {
 
     private BlockingQueue<WorkerSocketManager> workerList;
-    private IServerSocketManager serverSocketManager;
+    private ServerSocketManager serverSocketManager;
 
-    public WorkerSocketManager(IServerSocketManager serverSocketManager, Socket managedSocket) {
+    public WorkerSocketManager(ServerSocketManager serverSocketManager, Socket managedSocket) {
         this.serverSocketManager = serverSocketManager;
         this.managedSocket       = managedSocket;
         this.inboundCommandQueue = serverSocketManager.getServerCommandQueue();

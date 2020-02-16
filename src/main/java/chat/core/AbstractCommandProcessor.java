@@ -1,8 +1,5 @@
 package chat.core;
 
-import chat.model.Activable;
-import chat.model.AppPacket;
-import chat.model.IActivable;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;

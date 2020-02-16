@@ -1,9 +1,6 @@
 package chat.core;
 
-import chat.model.ActivableNotifier;
-import chat.model.AppPacket;
-import chat.model.AppPacket.ProtocolSignal;
-import chat.model.ISocketManager;
+import chat.core.AppPacket.ProtocolSignal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import tools.log.Flogger;
 
-public abstract class AbstractSocketManager extends ActivableNotifier implements ISocketManager {
+public abstract class AbstractSocketManager extends ActivableNotifier {
 
     protected Socket managedSocket;
     protected ExecutorService managerPool;
@@ -91,17 +88,14 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
         this.outboundCommandQueue = outboundCommandQueue;
     }
 
-    @Override
     public BlockingQueue<AppPacket> getInboundCommandQueue() {
         return inboundCommandQueue;
     }
 
-    @Override
     public BlockingQueue<AppPacket> getOutboundCommandQueue() {
         return outboundCommandQueue;
     }
 
-    @Override
     public InputStream getInputStream() {
         return inputStream;
     }
@@ -110,7 +104,6 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
         this.inputStream = inputStream;
     }
 
-    @Override
     public OutputStream getOutputStream() {
         return outputStream;
     }
@@ -132,7 +125,6 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
         setOutputStream();
     }
 
-    @Override
     public void queueTransmission(AppPacket appPacket) {
         try {
             outboundCommandQueue.put(appPacket);
@@ -145,14 +137,12 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
 
     }
 
-    @Override
     public void queueTransmission(String username, String message) {
         AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, managedSocket.getLocalSocketAddress(), username, message);
         queueTransmission(newMessage);
     }
 
 
-    @Override
     public void sendHeartbeatPacket() {
         if (!outboundCommandQueue.contains(heartbeatPacket)) {
             try {
@@ -167,7 +157,6 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
     }
 
 
-    @Override
     public boolean isSocketOpen() {
         return managedSocket != null && !managedSocket.isClosed();
     }
@@ -238,15 +227,12 @@ public abstract class AbstractSocketManager extends ActivableNotifier implements
     }
 
 
-    @Override
     public synchronized void updateHeartbeatDaemonTime() {
         heartbeatDaemon.updateHeartBeatTime();
     }
 
-    @Override
     public abstract void startSocketManager();
 
-    @Override
     public abstract void stopSocketManager();
 
 }

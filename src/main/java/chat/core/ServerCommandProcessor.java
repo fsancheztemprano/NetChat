@@ -1,15 +1,12 @@
 package chat.core;
 
-import chat.model.AppPacket;
-import chat.model.IServerSocketManager;
-
 public class ServerCommandProcessor extends AbstractCommandProcessor {
 
-    private IServerSocketManager serverManager;
+    private ServerSocketManager serverSocketManager;
 
-    public ServerCommandProcessor(IServerSocketManager serverManager) {
-        super(serverManager, serverManager.getServerCommandQueue());
-        this.serverManager = serverManager;
+    public ServerCommandProcessor(ServerSocketManager serverSocketManager) {
+        super(serverSocketManager, serverSocketManager.getServerCommandQueue());
+        this.serverSocketManager = serverSocketManager;
     }
 
     @Override
@@ -23,7 +20,7 @@ public class ServerCommandProcessor extends AbstractCommandProcessor {
                 break;
             case NEW_MESSAGE:
 //                ChatService.getInstance().newMessage(String.format("%s: %s",appPacket.getUsername(),appPacket.getMessage()));
-                serverManager.transmitToAllClients(appPacket);
+                serverSocketManager.transmitToAllClients(appPacket);
                 break;
             case CLIENT_QUIT:
 //                ChatService.getInstance().userQuit(appPacket.getUsername());

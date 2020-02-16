@@ -1,4 +1,4 @@
-package chat;
+package chat.cli;
 
 import chat.core.Client;
 import java.util.Scanner;

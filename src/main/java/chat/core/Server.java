@@ -1,7 +1,5 @@
 package chat.core;
 
-import chat.model.IServerStatusListener;
-
 public class Server {
 
     private static Server instance;

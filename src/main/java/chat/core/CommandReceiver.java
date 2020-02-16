@@ -1,7 +1,5 @@
 package chat.core;
 
-import chat.model.Activable;
-import chat.model.AppPacket;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;

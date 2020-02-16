@@ -2,8 +2,8 @@ package chat.ui;
 
 import static tools.Asserts.isValidPort;
 
+import chat.core.IServerStatusListener;
 import chat.core.Server;
-import chat.model.IServerStatusListener;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;

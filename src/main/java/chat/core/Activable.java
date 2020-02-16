@@ -1,4 +1,4 @@
-package chat.model;
+package chat.core;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

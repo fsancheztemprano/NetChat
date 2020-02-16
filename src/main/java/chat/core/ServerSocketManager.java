@@ -1,10 +1,6 @@
 package chat.core;
 
-import chat.model.ActivableNotifier;
-import chat.model.AppPacket;
-import chat.model.AppPacket.ProtocolSignal;
-import chat.model.IServerSocketManager;
-import chat.model.IServerStatusListener;
+import chat.core.AppPacket.ProtocolSignal;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -17,7 +13,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import tools.log.Flogger;
 
-public class ServerSocketManager extends ActivableNotifier implements IServerSocketManager, Runnable {
+public class ServerSocketManager extends ActivableNotifier implements Runnable {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
@@ -81,7 +77,6 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
         }
     }
 
-    @Override
     public synchronized void serverShutdown() {
         if (isActive() || isServerSocketBound() || isServerSocketOpen()) {
             try {
@@ -104,24 +99,20 @@ public class ServerSocketManager extends ActivableNotifier implements IServerSoc
         }
     }
 
-    @Override
     public BlockingQueue<AppPacket> getServerCommandQueue() {
         return serverCommandQueue;
     }
 
-    @Override
     public BlockingQueue<WorkerSocketManager> getWorkerList() {
         return workerList;
     }
 
-    @Override
     public void removeWorker(WorkerSocketManager workerSocketManager) {
         log("Conexion finalizada: " + workerSocketManager.managedSocket.getRemoteSocketAddress());
         workerList.remove(workerSocketManager);
         notifyActiveClientsChange(--activeClients);
     }
 
-    @Override
     public void transmitToAllClients(AppPacket appPacket) {
         workerList.forEach(worker -> worker.queueTransmission(appPacket));
     }

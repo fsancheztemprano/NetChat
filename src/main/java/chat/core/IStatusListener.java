@@ -1,4 +1,4 @@
-package chat.model;
+package chat.core;
 
 public interface IStatusListener {
 

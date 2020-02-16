@@ -1,16 +1,14 @@
 package chat.core;
 
-import chat.model.Activable;
-import chat.model.ISocketManager;
 import java.time.LocalDateTime;
 import tools.log.Flogger;
 
 public class HeartbeatDaemon extends Activable implements Runnable {
 
-    private ISocketManager manager;
+    private AbstractSocketManager manager;
     private LocalDateTime lastHeartbeat = null;
 
-    public HeartbeatDaemon(ISocketManager socketManager) {
+    public HeartbeatDaemon(AbstractSocketManager socketManager) {
         this.manager  = socketManager;
         lastHeartbeat = LocalDateTime.now().minusSeconds(Globals.HEARTBEAT_DELAY - Globals.HEARTBEAT_FIRST);
 

@@ -1,6 +1,5 @@
 package chat.core;
 
-import chat.model.IClientStatusListener;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -9,7 +8,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import tools.log.Flogger;
 
-class ClientSocketManager extends AbstractSocketManager {
+public class ClientSocketManager extends AbstractSocketManager {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;

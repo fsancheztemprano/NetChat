@@ -1,7 +1,5 @@
 package chat.core;
 
-import chat.model.AppPacket;
-
 public class ClientCommandProcessor extends AbstractCommandProcessor {
 
     ClientSocketManager clientManager;

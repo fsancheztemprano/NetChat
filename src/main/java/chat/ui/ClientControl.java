@@ -3,7 +3,7 @@ package chat.ui;
 import static tools.Asserts.isValidPort;
 
 import chat.core.Client;
-import chat.model.IClientStatusListener;
+import chat.core.IClientStatusListener;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
