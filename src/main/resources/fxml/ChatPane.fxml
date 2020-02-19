@@ -2,13 +2,12 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Circle?>
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chat.ui.ChatControl">
+
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.ui.ChatControl">
   <children>
     <TextArea fx:id="areaChatLog" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
     <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -17,19 +16,6 @@
         <Button fx:id="btnSend1" layoutX="237.0" layoutY="10.0" mnemonicParsing="false" onAction="#sendMessageAction" text="Enviar" />
       </children>
     </HBox>
-    <HBox alignment="CENTER_RIGHT" spacing="10.0">
-      <children>
-          <HBox alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="ALWAYS">
-            <children>
-              <Circle fx:id="circleClientStatus" fill="#ff1f1f" radius="10.0" stroke="BLACK" strokeType="INSIDE" />
-              <Label text="User:" />
-              <TextField fx:id="fieldUsername" maxWidth="1.7976931348623157E308" onAction="#btnSetUsernameAction" text="user" HBox.hgrow="ALWAYS" />
-              <Button fx:id="btnSetUsername" mnemonicParsing="false" onAction="#btnSetUsernameAction" text="Set" />
-            </children>
-          </HBox>
-          <Button fx:id="btnExit" layoutX="371.0" layoutY="10.0" mnemonicParsing="false" onAction="#btnExitAction" text="Cerrar" />
-        </children>
-      </HBox>
    </children>
    <padding>
       <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

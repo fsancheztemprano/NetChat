@@ -1,4 +1,4 @@
-import chat.ui.MainUI;
+import app.ui.MainUI;
 import java.net.UnknownHostException;
 
 public class App {
