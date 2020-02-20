@@ -19,6 +19,8 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile 'com.google.flogger:flogger:0.4'
     compile 'com.google.flogger:flogger-system-backend:0.4'
+
+    compile 'com.google.guava:guava:28.2-jre'
 }
 
 jar{

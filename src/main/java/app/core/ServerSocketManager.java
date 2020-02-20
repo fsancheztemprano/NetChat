@@ -1,6 +1,7 @@
 package app.core;
 
-import app.core.AppPacket.ProtocolSignal;
+import app.core.packetmodel.AppPacket;
+import com.google.common.eventbus.EventBus;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -27,6 +28,10 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
     private BlockingQueue<AppPacket> serverCommandQueue;
     private ServerCommandProcessor serverCommandProcessor;
 
+    public ServerSocketManager() {
+        socketEventBus = new EventBus("ServerEventBus");
+    }
+
     @Override
     public void run() {
         try {
@@ -52,9 +57,8 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
                 WorkerSocketManager workerSocketManager = new WorkerSocketManager(this, clientSocket);
                 if (workerList.offer(workerSocketManager)) {
                     log("Conexion aceptada: " + clientSocket.getRemoteSocketAddress());
-                    workerSocketManager.subscribe(listener);
                     workerSocketManager.startSocketManager();
-                    notifyActiveClientsChange(++activeClients);
+                    socketEventBus.post(new Integer(workerList.size()));
                 } else {
                     log("Conexion Rechazada, Servidor Lleno. (" + Globals.MAX_ACTIVE_CLIENTS + ")");
                     clientSocket.close();
@@ -84,7 +88,6 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
                 stopAllClients();
                 stopCommandProcessor();
 
-                listener               = null;
                 serverSocket           = null;
                 inetSocketAddress      = null;
                 workerList             = null;
@@ -110,7 +113,7 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
     public void removeWorker(WorkerSocketManager workerSocketManager) {
         log("Conexion finalizada: " + workerSocketManager.managedSocket.getRemoteSocketAddress());
         workerList.remove(workerSocketManager);
-        notifyActiveClientsChange(--activeClients);
+        socketEventBus.post(new Integer(workerList.size()));
     }
 
     public void transmitToAllClients(AppPacket appPacket) {
@@ -152,8 +155,8 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
 
 
     public void queueTransmission(String message) {
-        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, serverSocket.getLocalSocketAddress(), "server", message);
-        transmitToAllClients(newMessage);
+//        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, serverSocket.getLocalSocketAddress(), "server", message);
+//        transmitToAllClients(newMessage);
     }
 
     public void setHostname(String hostname) {
@@ -164,9 +167,4 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
         this.port = port;
     }
 
-    void notifyActiveClientsChange(int activeClients) {
-        if (listener != null && listener instanceof IServerStatusListener) {
-            ((IServerStatusListener) listener).onActiveClientsChange(activeClients);
-        }
-    }
 }

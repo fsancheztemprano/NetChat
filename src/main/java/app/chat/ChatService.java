@@ -1,8 +1,14 @@
 package app.chat;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import app.core.packetmodel.AuthRequestPacket;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder.SetMultimapBuilder;
+import com.google.common.collect.Multimaps;
+import com.google.common.eventbus.Subscribe;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatService {
 
@@ -23,18 +29,24 @@ public class ChatService {
         return instance;
     }
 
-    private volatile ArrayList<User> userRepo = new ArrayList<>(initUsers());
+    private ConcurrentHashMap<String, User> userTable = new ConcurrentHashMap<>();
 
-    private volatile ArrayList<User> loggedInUsers = new ArrayList<>();
+    private Multimap<String, Long> sessions = Multimaps.synchronizedSetMultimap(SetMultimapBuilder.hashKeys().hashSetValues().build());
 
-    public static List<User> initUsers(){
-        return Arrays.asList(
-            new User("admin", "admadm"),
-            new User("user1", "user1"),
-            new User("user2", "user2"),
-            new User("user3", "user3"));
+
+    @Subscribe
+    public void validateLoginRequest(AuthRequestPacket loginRequest) {
+        boolean validated = false;
+        HashFunction hasher = Hashing.sha256();
+        HashCode sha256 = hasher.newHasher()
+                                .putUnencodedChars(loginRequest.getPassword())
+                                .hash();
+        String reHashedPass = sha256.toString();
+
+        User user = userTable.putIfAbsent(loginRequest.getUsername(), new User(loginRequest.getUsername(), reHashedPass));
+        if (user == null || (user.getPassword().equals(reHashedPass))) { //new user request case
+            validated = true;
+        }
+        loginRequest.getHandler().sendAuthApproval(validated);
     }
-
-
-
 }

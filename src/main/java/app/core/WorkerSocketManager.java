@@ -1,5 +1,6 @@
 package app.core;
 
+import app.core.packetmodel.AuthResponsePacket;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,11 +13,14 @@ public class WorkerSocketManager extends AbstractSocketManager {
     private BlockingQueue<WorkerSocketManager> workerList;
     private ServerSocketManager serverSocketManager;
 
+
     public WorkerSocketManager(ServerSocketManager serverSocketManager, Socket managedSocket) {
         this.serverSocketManager = serverSocketManager;
         this.managedSocket       = managedSocket;
         this.inboundCommandQueue = serverSocketManager.getServerCommandQueue();
         this.workerList          = serverSocketManager.getWorkerList();
+        socketEventBus           = serverSocketManager.getSocketEventBus();
+        this.sessionID           = generateHashID();
     }
 
     @Override
@@ -54,8 +58,14 @@ public class WorkerSocketManager extends AbstractSocketManager {
         }
     }
 
-    @Override
-    protected void notifySocketStatus(boolean active) {
-
+    @Override //no notification sent
+    public void setActive(boolean active) {
+        this.active.set(active);
     }
+
+    public void sendAuthApproval(boolean approved) {
+        AuthResponsePacket authResponsePacket = new AuthResponsePacket(approved ? sessionID : -1);
+        queueTransmission(authResponsePacket);
+    }
+
 }

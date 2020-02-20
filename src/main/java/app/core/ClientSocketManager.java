@@ -1,11 +1,18 @@
 package app.core;
 
+import app.core.packetmodel.AppPacket;
+import app.core.packetmodel.AuthRequestPacket;
+import com.google.common.eventbus.EventBus;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
+import javax.annotation.Nonnull;
 import tools.log.Flogger;
 
 public class ClientSocketManager extends AbstractSocketManager {
@@ -15,6 +22,9 @@ public class ClientSocketManager extends AbstractSocketManager {
 
     private ClientCommandProcessor clientCommandProcessor;
 
+    public ClientSocketManager() {
+        socketEventBus = new EventBus("ClientEventBus");
+    }
 
     @Override
     public synchronized void startSocketManager() {
@@ -67,7 +77,6 @@ public class ClientSocketManager extends AbstractSocketManager {
             } finally {
                 log("Conexion Finalizada");
                 setActive(false);
-                listener = null;
                 Thread.currentThread().interrupt();
             }
         }
@@ -102,8 +111,22 @@ public class ClientSocketManager extends AbstractSocketManager {
     }
 
     void notifyChatMessageReceived(String username, String message) {
-        if (listener != null && listener instanceof IClientStatusListener) {
-            ((IClientStatusListener) listener).onChatMessageReceived(username, message);
-        }
+//        if (listener != null && listener instanceof IClientStatusListener) {
+//            ((IClientStatusListener) listener).onChatMessageReceived(username, message);
+//        }
+    }
+
+
+    @SuppressWarnings("UnstableApiUsage")
+    void sendLoginRequest(@Nonnull final String username, @Nonnull final String password) {
+        if (username.length() < 4 || password.length() < 4)
+            return;
+        HashFunction hasher = Hashing.sha256();
+        HashCode sha256 = hasher.newHasher()
+                                .putUnencodedChars(password)
+                                .hash();
+        String hashedPass = sha256.toString();//1st time sha256
+        AppPacket loginRequest = new AuthRequestPacket(username, hashedPass);
+        queueTransmission(loginRequest);
     }
 }

@@ -1,6 +1,6 @@
 package app.cli;
 
-import app.core.Client;
+import app.core.ClientFacade;
 import java.util.Scanner;
 
 public class ConsoleClient {
@@ -12,11 +12,11 @@ public class ConsoleClient {
 
         String message = "";
 
-        Client.inst().connect();
-        while (!((message = scanner.nextLine()).equalsIgnoreCase("exit")) && Client.inst().isConnected()) {
-            Client.inst().sendMessage(username, message);
+        ClientFacade.inst().connect();
+        while (!((message = scanner.nextLine()).equalsIgnoreCase("exit")) && ClientFacade.inst().isConnected()) {
+            ClientFacade.inst().sendMessage(username, message);
         }
-        new Thread(() -> Client.inst().disconnect()).start();
+        new Thread(() -> ClientFacade.inst().disconnect()).start();
 
         System.out.println("END");
         System.exit(0);

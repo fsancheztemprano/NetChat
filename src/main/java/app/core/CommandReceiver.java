@@ -1,5 +1,6 @@
 package app.core;
 
+import app.core.packetmodel.AppPacket;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -27,8 +28,11 @@ public class CommandReceiver extends Activable implements Runnable {
                 while (isActive()) {
                     try {
                         AppPacket appPacket = (AppPacket) objectInputStream.readObject();
-                        socketManager.updateHeartbeatDaemonTime();
-                        socketManager.log("In: " + appPacket.toString());
+                        appPacket.setHandler(socketManager instanceof WorkerSocketManager
+                                             ? ((WorkerSocketManager) socketManager)
+                                             : null);
+                        socketManager.updateHeartbeatDaemonTime();                  //TODO migrate to event bus
+                        socketManager.log("In: " + appPacket.toString());    //TODO migrate to event bus
                         inboundCommandQueue.put(appPacket);
                     } catch (SocketException se) {
                         setActive(false);

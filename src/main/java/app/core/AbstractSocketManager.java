@@ -1,6 +1,10 @@
 package app.core;
 
-import app.core.AppPacket.ProtocolSignal;
+import app.core.packetmodel.AppPacket;
+import app.core.packetmodel.HeartbeatPacket;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,6 +12,7 @@ import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import tools.log.Flogger;
 
 public abstract class AbstractSocketManager extends ActivableNotifier {
@@ -25,6 +30,24 @@ public abstract class AbstractSocketManager extends ActivableNotifier {
     protected InputStream inputStream;
     protected OutputStream outputStream;
 
+    protected long sessionID = -1;
+
+    @SuppressWarnings("UnstableApiUsage")
+    protected static long generateHashID() {
+        HashFunction hasher = Hashing.goodFastHash(Long.SIZE);
+        HashCode idHash = hasher.newHasher()
+                                .putLong(System.currentTimeMillis())
+                                .hash();
+        return idHash.asLong();
+    }
+
+    public long getSessionID() {
+        return sessionID;
+    }
+
+    public void setSessionID(long sessionID) {
+        this.sessionID = sessionID;
+    }
 
     public Socket getManagedSocket() {
         return managedSocket;
@@ -45,10 +68,7 @@ public abstract class AbstractSocketManager extends ActivableNotifier {
     public AppPacket getHeartbeatPacket() {
         return heartbeatPacket != null
                ? heartbeatPacket
-               : new AppPacket(ProtocolSignal.HEARTBEAT,
-                               managedSocket.getLocalSocketAddress(),
-                               "kokoro",
-                               "heartbeat");
+               : new HeartbeatPacket();
     }
 
     public void setHeartbeatPacket(AppPacket heartbeatPacket) {
@@ -125,12 +145,15 @@ public abstract class AbstractSocketManager extends ActivableNotifier {
         setOutputStream();
     }
 
-    public void queueTransmission(AppPacket appPacket) {
+    public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
         try {
-            outboundCommandQueue.put(appPacket);
+            if (!outboundCommandQueue.contains(appPacket)) {
+                appPacket.setOriginSocketAddress(managedSocket.getLocalSocketAddress());
+                appPacket.setAuth(getSessionID());
+                outboundCommandQueue.put(appPacket);
+            }
         } catch (InterruptedException e) {
             Flogger.atWarning().withCause(e).log("ER-ASM-0001");
-
         } catch (Exception e) {
             Flogger.atWarning().withCause(e).log("ER-ASM-0000");
         }
@@ -138,22 +161,13 @@ public abstract class AbstractSocketManager extends ActivableNotifier {
     }
 
     public void queueTransmission(String username, String message) {
-        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, managedSocket.getLocalSocketAddress(), username, message);
-        queueTransmission(newMessage);
+//        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, managedSocket.getLocalSocketAddress(), username, message);
+//        queueTransmission(newMessage);
     }
 
 
     public void sendHeartbeatPacket() {
-        if (!outboundCommandQueue.contains(heartbeatPacket)) {
-            try {
-                outboundCommandQueue.put(getHeartbeatPacket());
-            } catch (InterruptedException e) {
-                Flogger.atWarning().withCause(e).log("ER-ASM-0003");
-
-            } catch (Exception e) {
-                Flogger.atWarning().withCause(e).log("ER-ASM-0002");
-            }
-        }
+        queueTransmission(getHeartbeatPacket());
     }
 
 

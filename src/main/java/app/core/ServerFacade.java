@@ -1,17 +1,19 @@
 package app.core;
 
-public class Server {
+import app.chat.ChatService;
 
-    private static Server instance;
+public class ServerFacade {
 
-    private Server() {
+    private static ServerFacade instance;
+
+    private ServerFacade() {
     }
 
-    public static Server inst() {
+    public static ServerFacade inst() {
         if (instance == null) {
-            synchronized (Server.class) {
+            synchronized (ServerFacade.class) {
                 if (instance == null) {
-                    instance = new Server();
+                    instance = new ServerFacade();
                 }
             }
         }
@@ -21,7 +23,7 @@ public class Server {
     private ServerSocketManager serverManager;
     private String hostname;
     private int port;
-    private IServerStatusListener listener = null;
+    private Object listener = null;
 
     public ServerSocketManager getServerManager() {
         return serverManager;
@@ -32,7 +34,8 @@ public class Server {
         serverManager = new ServerSocketManager();
         serverManager.setHostname(hostname);
         serverManager.setPort(port);
-        serverManager.subscribe(listener);
+        serverManager.register(ChatService.getInstance());
+        serverManager.register(listener);
         new Thread(serverManager).start();
     }
 
@@ -40,6 +43,8 @@ public class Server {
         if (serverManager != null) {
             new Thread(() -> {
                 serverManager.serverShutdown();
+                serverManager.unregister(ChatService.getInstance());
+                serverManager.unregister(listener);
                 serverManager = null;
             }).start();
         }
@@ -49,7 +54,7 @@ public class Server {
         return serverManager != null && serverManager.isActive();
     }
 
-    public void setListener(IServerStatusListener listener) {
+    public void setListener(Object listener) {
         this.listener = listener;
     }
 

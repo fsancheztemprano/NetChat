@@ -1,5 +1,6 @@
 package app.core;
 
+import app.core.packetmodel.AppPacket;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;

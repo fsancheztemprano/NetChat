@@ -1,17 +1,17 @@
 package app.core;
 
-public class Client {
+public class ClientFacade {
 
-    private static Client instance;
+    private static ClientFacade instance;
 
-    private Client() {
+    private ClientFacade() {
     }
 
-    public static Client inst() {
+    public static ClientFacade inst() {
         if (instance == null) {
-            synchronized (Client.class) {
+            synchronized (ClientFacade.class) {
                 if (instance == null) {
-                    instance = new Client();
+                    instance = new ClientFacade();
                 }
             }
         }
@@ -21,7 +21,7 @@ public class Client {
     private ClientSocketManager clientSocketManager = null;
     private String hostname;
     private int port;
-    private IClientStatusListener listener = null;
+    private Object listener = null;
 
 
     public void connect() {
@@ -30,7 +30,7 @@ public class Client {
         clientSocketManager = new ClientSocketManager();
         clientSocketManager.setHostname(hostname);
         clientSocketManager.setPort(port);
-        clientSocketManager.subscribe(listener);
+        clientSocketManager.getSocketEventBus().register(listener);
         new Thread(() -> clientSocketManager.startSocketManager()).start();
     }
 
@@ -59,7 +59,11 @@ public class Client {
         this.port = port;
     }
 
-    public void setListener(IClientStatusListener listener) {
+    public void setListener(Object listener) {
         this.listener = listener;
+    }
+
+    public void login(String username, String password) {
+        clientSocketManager.sendLoginRequest(username, password);
     }
 }

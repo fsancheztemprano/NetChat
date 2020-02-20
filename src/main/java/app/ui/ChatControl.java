@@ -1,6 +1,6 @@
 package app.ui;
 
-import app.core.Client;
+import app.core.ClientFacade;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -51,14 +51,14 @@ public class ChatControl extends VBox {
     @FXML
     void btnSetUsernameAction(ActionEvent event) {
         if (checkUsername().length() > 1)
-            Client.inst().sendMessage(fieldUsername.getText(), "# Se ha unido al chat.");
+            ClientFacade.inst().sendMessage(fieldUsername.getText(), "# Se ha unido al chat.");
     }
 
 
     @FXML
     void sendMessageAction(ActionEvent event) {
         if (checkUsername().length() > 1 && fieldMessageDraft.getText().length() > 0) {
-            Client.inst().sendMessage(fieldUsername.getText(), fieldMessageDraft.getText());
+            ClientFacade.inst().sendMessage(fieldUsername.getText(), fieldMessageDraft.getText());
             fieldMessageDraft.setText("");
         }
     }

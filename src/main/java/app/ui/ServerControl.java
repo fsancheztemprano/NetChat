@@ -2,8 +2,8 @@ package app.ui;
 
 import static tools.Asserts.isValidPort;
 
-import app.core.IServerStatusListener;
-import app.core.Server;
+import app.core.ServerFacade;
+import com.google.common.eventbus.Subscribe;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -17,7 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class ServerControl extends VBox implements IServerStatusListener {
+public class ServerControl extends VBox {
 
     @FXML
     private ResourceBundle resources;
@@ -58,16 +58,16 @@ public class ServerControl extends VBox implements IServerStatusListener {
     @FXML
     void btnServerStartAction(ActionEvent event) {
         if (isValidPort(txtFieldPort.getText())) {
-            Server.inst().setHostname(txtFieldHostname.getText());
-            Server.inst().setPort(Integer.parseInt(txtFieldPort.getText()));
-            Server.inst().startServer();
+            ServerFacade.inst().setHostname(txtFieldHostname.getText());
+            ServerFacade.inst().setPort(Integer.parseInt(txtFieldPort.getText()));
+            ServerFacade.inst().startServer();
         } else
-            onLogOutput("Puerto invalido");
+            logOutput("Puerto invalido");
     }
 
     @FXML
     void btnServerStopAction(ActionEvent event) {
-        Server.inst().stopServer();
+        ServerFacade.inst().stopServer();
     }
 
     @FXML
@@ -81,17 +81,17 @@ public class ServerControl extends VBox implements IServerStatusListener {
         assert btnExit != null : "fx:id=\"btnExit\" was not injected: check your FXML file 'ServerPane.fxml'.";
         assert labelNumClients != null : "fx:id=\"labelNumClients\" was not injected: check your FXML file 'ServerPane.fxml'.";
 
-        Server.inst().setListener(this);
+        ServerFacade.inst().setListener(this);
         Platform.runLater(() -> btnServerStart.requestFocus());
     }
 
-    @Override
-    public void onActiveClientsChange(int activeClients) {
+    @Subscribe
+    public void activeClientsChange(Integer activeClients) {
         Platform.runLater(() -> labelNumClients.setText(Integer.toString(activeClients)));
     }
 
-    @Override
-    public void onStatusChanged(boolean active) {
+    @Subscribe
+    public void serverStatusChange(Boolean active) {
         if (active)
             Platform.runLater(() -> {
                 circleServerStatus.setFill(Color.LIMEGREEN);
@@ -104,8 +104,8 @@ public class ServerControl extends VBox implements IServerStatusListener {
             });
     }
 
-    @Override
-    public void onLogOutput(String string) {
-        Platform.runLater(() -> txtAreaServerLog.appendText(string + "\n"));
+    @Subscribe
+    public void logOutput(String log) {
+        Platform.runLater(() -> txtAreaServerLog.appendText(log + "\n"));
     }
 }

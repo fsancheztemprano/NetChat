@@ -1,35 +1,35 @@
 package app.core;
 
+import com.google.common.eventbus.EventBus;
+
+@SuppressWarnings("UnstableApiUsage")
 public abstract class ActivableNotifier extends Activable {
 
-    protected IStatusListener listener = null;
 
-    public synchronized <T extends IStatusListener> void subscribe(T statusListener) {
-        listener = statusListener;
+    protected EventBus socketEventBus;
+
+    public EventBus getSocketEventBus() {
+        return socketEventBus;
     }
 
-    public void unsubscribe() {
-        listener = null;
+    public void register(Object listener) {
+        socketEventBus.register(listener);
     }
 
-    protected void notifySocketStatus(boolean active) {
-        if (listener != null)
-            listener.onStatusChanged(active);
-    }
-
-    public void notifyLogOutput(String output) {
-        if (listener != null)
-            listener.onLogOutput(output);
+    public void unregister(Object listener) {
+        socketEventBus.unregister(listener);
     }
 
     @Override
     public void setActive(boolean active) {
         this.active.set(active);
-        notifySocketStatus(active);
+        Boolean boxed = active;
+        socketEventBus.post(boxed);
     }
 
     public void log(String output) {
         System.out.println(output);
-        notifyLogOutput(output);
+        socketEventBus.post(output);
     }
+
 }

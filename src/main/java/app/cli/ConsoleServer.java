@@ -1,21 +1,21 @@
 package app.cli;
 
-import app.core.Server;
+import app.core.ServerFacade;
 import java.util.Scanner;
 
 public class ConsoleServer {
 
     public static void main(String[] args) throws InterruptedException {
-        Server.inst().startServer();
+        ServerFacade.inst().startServer();
         Thread.sleep(1000);
         Scanner scanner = new Scanner(System.in);
 
         String userin = "";
-        while (!userin.equalsIgnoreCase("exit") && Server.inst().isServerAlive()) {
+        while (!userin.equalsIgnoreCase("exit") && ServerFacade.inst().isServerAlive()) {
             userin = scanner.nextLine();
-            Server.inst().getServerManager().queueTransmission(userin);
+            ServerFacade.inst().getServerManager().queueTransmission(userin);
         }
-        new Thread(() -> Server.inst().stopServer()).start();
+        new Thread(() -> ServerFacade.inst().stopServer()).start();
 
         System.out.println("END");
         System.exit(0);
