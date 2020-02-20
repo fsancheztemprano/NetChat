@@ -1,6 +1,7 @@
 package app.core;
 
 import app.core.packetmodel.AppPacket;
+import app.core.packetmodel.AuthRemovePacket;
 import app.core.packetmodel.AuthRequestPacket;
 import com.google.common.eventbus.EventBus;
 import com.google.common.hash.HashCode;
@@ -110,12 +111,6 @@ public class ClientSocketManager extends AbstractSocketManager {
         this.port = port;
     }
 
-    void notifyChatMessageReceived(String username, String message) {
-//        if (listener != null && listener instanceof IClientStatusListener) {
-//            ((IClientStatusListener) listener).onChatMessageReceived(username, message);
-//        }
-    }
-
 
     @SuppressWarnings("UnstableApiUsage")
     void sendLoginRequest(@Nonnull final String username, @Nonnull final String password) {
@@ -128,5 +123,16 @@ public class ClientSocketManager extends AbstractSocketManager {
         String hashedPass = sha256.toString();//1st time sha256
         AppPacket loginRequest = new AuthRequestPacket(username, hashedPass);
         queueTransmission(loginRequest);
+    }
+
+    @Override
+    public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
+        appPacket.setAuth(getSessionID());
+        super.queueTransmission(appPacket);
+    }
+
+    public void sendLogOutAction() {
+        queueTransmission(new AuthRemovePacket());
+        setSessionID(-1);
     }
 }

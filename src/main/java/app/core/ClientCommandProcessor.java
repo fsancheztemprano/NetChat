@@ -2,6 +2,7 @@ package app.core;
 
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AuthResponsePacket;
+import javax.annotation.Nonnull;
 
 public class ClientCommandProcessor extends AbstractCommandProcessor {
 
@@ -14,25 +15,12 @@ public class ClientCommandProcessor extends AbstractCommandProcessor {
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
-    protected void processCommand(AppPacket appPacket) {
-        if (appPacket == null || appPacket.getUsername() == null || appPacket.getOriginSocketAddress() == null)
-            return;
-
+    protected void processCommand(@Nonnull AppPacket appPacket) {
         switch (appPacket.getSignal()) {
             case AUTH_RESPONSE:
                 clientManager.setSessionID(appPacket.getAuth());
                 AuthResponsePacket authResponsePacket = (AuthResponsePacket) appPacket;
                 clientManager.getSocketEventBus().post(authResponsePacket);
-                break;
-            case CLIENT_JOIN:
-//                ChatService.getInstance().userJoin(appPacket.getUsername());
-                break;
-            case NEW_MESSAGE:
-//                ChatService.getInstance().newMessage(String.format("%s: %s",appPacket.getUsername(),appPacket.getMessage()));
-                clientManager.notifyChatMessageReceived(appPacket.getUsername(), appPacket.getMessage());
-                break;
-            case CLIENT_QUIT:
-//                ChatService.getInstance().userQuit(appPacket.getUsername());
                 break;
         }
     }

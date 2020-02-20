@@ -71,4 +71,8 @@ public class ClientFacade {
     public void login(String username, String password) {
         clientSocketManager.sendLoginRequest(username, password);
     }
+
+    public void logout() {
+        clientSocketManager.sendLogOutAction();
+    }
 }

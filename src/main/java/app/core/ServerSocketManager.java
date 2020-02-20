@@ -13,6 +13,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import tools.log.Flogger;
 
 public class ServerSocketManager extends ActivableNotifier implements Runnable {
@@ -23,19 +24,22 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
     private ServerSocket serverSocket = null;
     private InetSocketAddress inetSocketAddress;
 
-    private BlockingQueue<WorkerSocketManager> workerList;
+
+    ConcurrentHashMap<Long, WorkerSocketManager> workerList;
+
 
     private BlockingQueue<AppPacket> serverCommandQueue;
     private ServerCommandProcessor serverCommandProcessor;
 
     public ServerSocketManager() {
         socketEventBus = new EventBus("ServerEventBus");
+
     }
 
     @Override
     public void run() {
         try {
-            workerList             = new ArrayBlockingQueue<>(Globals.MAX_ACTIVE_CLIENTS);
+            workerList             = new ConcurrentHashMap<>();
             serverCommandQueue     = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
             serverCommandProcessor = new ServerCommandProcessor(this);
 
@@ -55,7 +59,8 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
                 clientSocket.setKeepAlive(true);
                 log("Conexion entrante: " + clientSocket.getRemoteSocketAddress());
                 WorkerSocketManager workerSocketManager = new WorkerSocketManager(this, clientSocket);
-                if (workerList.offer(workerSocketManager)) {
+                if (workerList.size() < Globals.MAX_ACTIVE_CLIENTS) {
+                    workerList.put(workerSocketManager.getSessionID(), workerSocketManager);
                     log("Conexion aceptada: " + clientSocket.getRemoteSocketAddress());
                     workerSocketManager.startSocketManager();
                     socketEventBus.post(new Integer(workerList.size()));
@@ -106,18 +111,18 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
         return serverCommandQueue;
     }
 
-    public BlockingQueue<WorkerSocketManager> getWorkerList() {
+    public ConcurrentHashMap<Long, WorkerSocketManager> getWorkerList() {
         return workerList;
     }
 
     public void removeWorker(WorkerSocketManager workerSocketManager) {
         log("Conexion finalizada: " + workerSocketManager.managedSocket.getRemoteSocketAddress());
-        workerList.remove(workerSocketManager);
+        workerList.remove(workerSocketManager.getSessionID());
         socketEventBus.post(new Integer(workerList.size()));
     }
 
     public void transmitToAllClients(AppPacket appPacket) {
-        workerList.forEach(worker -> worker.queueTransmission(appPacket));
+        workerList.forEachValue(1, workerSocketManager -> workerSocketManager.queueTransmission(appPacket));
     }
 
     public boolean isServerSocketBound() {
@@ -144,7 +149,7 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
     }
 
     private void stopAllClients() {
-        workerList.forEach(WorkerSocketManager::stopSocketManager);
+        workerList.forEachValue(1, WorkerSocketManager::stopSocketManager);
         workerList.clear();
     }
 

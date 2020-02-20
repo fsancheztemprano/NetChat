@@ -2,9 +2,6 @@ package app.core;
 
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.HeartbeatPacket;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,25 +26,6 @@ public abstract class AbstractSocketManager extends ActivableNotifier {
     protected BlockingQueue<AppPacket> outboundCommandQueue;
     protected InputStream inputStream;
     protected OutputStream outputStream;
-
-    protected long sessionID = -1;
-
-    @SuppressWarnings("UnstableApiUsage")
-    protected static long generateHashID() {
-        HashFunction hasher = Hashing.goodFastHash(Long.SIZE);
-        HashCode idHash = hasher.newHasher()
-                                .putLong(System.currentTimeMillis())
-                                .hash();
-        return idHash.asLong();
-    }
-
-    public long getSessionID() {
-        return sessionID;
-    }
-
-    public void setSessionID(long sessionID) {
-        this.sessionID = sessionID;
-    }
 
     public Socket getManagedSocket() {
         return managedSocket;
@@ -149,7 +127,6 @@ public abstract class AbstractSocketManager extends ActivableNotifier {
         try {
             if (!outboundCommandQueue.contains(appPacket)) {
                 appPacket.setOriginSocketAddress(managedSocket.getLocalSocketAddress());
-                appPacket.setAuth(getSessionID());
                 outboundCommandQueue.put(appPacket);
             }
         } catch (InterruptedException e) {
@@ -241,7 +218,7 @@ public abstract class AbstractSocketManager extends ActivableNotifier {
     }
 
 
-    public synchronized void updateHeartbeatDaemonTime() {
+    public synchronized void updateHeartbeatDaemonTime() { //TODO change to EventBus
         heartbeatDaemon.updateHeartBeatTime();
     }
 

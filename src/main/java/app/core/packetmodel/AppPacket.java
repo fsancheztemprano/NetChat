@@ -1,6 +1,7 @@
 package app.core.packetmodel;
 
 import app.core.WorkerSocketManager;
+import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.net.SocketAddress;
 import java.util.Objects;
@@ -88,15 +89,16 @@ public class AppPacket implements Serializable {
 
     @Override
     public String toString() {
-        return "AppPacket{" +
-               "signal=" + signal +
-               ", originSocketAddress=" + originSocketAddress +
-               ", auth='" + auth + '\'' +
-               ", username='" + username + '\'' +
-               ", password='" + password + '\'' +
-               ", destiny='" + destiny + '\'' +
-               ", message='" + message + '\'' +
-               '}';
+        return MoreObjects.toStringHelper(this)
+                          .add("signal", signal)
+                          .add("originSocketAddress", originSocketAddress)
+                          .add("auth", auth)
+                          .add("username", username)
+                          .add("password", password)
+                          .add("destiny", destiny)
+                          .add("message", message)
+                          .add("handler", handler)
+                          .toString();
     }
 
     @Override
@@ -123,16 +125,21 @@ public class AppPacket implements Serializable {
 
     public enum ProtocolSignal implements Serializable {
         HEARTBEAT,
+        SERVER_BROADCAST,
+        UNAUTHORIZED_REQUEST,
+
+        AUTH_REQUEST,
+        AUTH_RESPONSE,
+        AUTH_REMOVE,
+
         CLIENT_JOIN,
         CLIENT_QUIT,
         NEW_MESSAGE,
 
         SERVER_SHUTDOWN,
 
-        AUTH_REQUEST,
-        AUTH_RESPONSE,
+
         NEW_PRIVATE_MSG,
-        NEW_GROUP_MSG,
-        SERVER_BROADCAST
+        NEW_GROUP_MSG
     }
 }

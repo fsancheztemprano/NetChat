@@ -1,9 +1,7 @@
 package app.chat;
 
+import app.core.packetmodel.AuthRemovePacket;
 import app.core.packetmodel.AuthRequestPacket;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder.SetMultimapBuilder;
-import com.google.common.collect.Multimaps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
@@ -29,9 +27,8 @@ public class ChatService {
         return instance;
     }
 
-    private ConcurrentHashMap<String, User> userTable = new ConcurrentHashMap<>();
-
-    private Multimap<String, Long> sessions = Multimaps.synchronizedSetMultimap(SetMultimapBuilder.hashKeys().hashSetValues().build());
+    private ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Long, User> sessionMap = new ConcurrentHashMap<>();
 
 
     @Subscribe
@@ -43,10 +40,21 @@ public class ChatService {
                                 .hash();
         String reHashedPass = sha256.toString();
 
-        User user = userTable.putIfAbsent(loginRequest.getUsername(), new User(loginRequest.getUsername(), reHashedPass));
-        if (user == null || (user.getPassword().equals(reHashedPass))) { //new user request case
+        User receivedUserDetails = new User(loginRequest.getUsername(), reHashedPass);
+        User existingUser = userRepo.putIfAbsent(loginRequest.getUsername(), receivedUserDetails);
+
+        if (existingUser == null) {                                             // new user
             validated = true;
+            sessionMap.put(loginRequest.getAuth(), receivedUserDetails);
+        } else if (existingUser.getPassword().equals(reHashedPass)) {           // receivedUser isValid
+            validated = true;
+            sessionMap.put(loginRequest.getAuth(), existingUser);
         }
         loginRequest.getHandler().sendAuthApproval(validated);
+    }
+
+    @Subscribe
+    public void userLogOut(AuthRemovePacket authRemovePacket) {
+        sessionMap.remove(authRemovePacket.getAuth());
     }
 }

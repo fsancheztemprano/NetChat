@@ -2,7 +2,7 @@ package app.core;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class Activable implements IActivable {
+public abstract class Activable extends Identifiable implements IActivable {
 
     protected AtomicBoolean active = new AtomicBoolean(false);
 

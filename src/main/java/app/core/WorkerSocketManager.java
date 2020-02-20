@@ -1,17 +1,21 @@
 package app.core;
 
+import app.core.packetmodel.AppPacket;
+import app.core.packetmodel.AppPacket.ProtocolSignal;
 import app.core.packetmodel.AuthResponsePacket;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import javax.annotation.Nonnull;
 import tools.log.Flogger;
 
 public class WorkerSocketManager extends AbstractSocketManager {
 
-    private BlockingQueue<WorkerSocketManager> workerList;
+    private ConcurrentHashMap<Long, WorkerSocketManager> workerList;
     private ServerSocketManager serverSocketManager;
+    private long serverID;
 
 
     public WorkerSocketManager(ServerSocketManager serverSocketManager, Socket managedSocket) {
@@ -20,7 +24,8 @@ public class WorkerSocketManager extends AbstractSocketManager {
         this.inboundCommandQueue = serverSocketManager.getServerCommandQueue();
         this.workerList          = serverSocketManager.getWorkerList();
         socketEventBus           = serverSocketManager.getSocketEventBus();
-        this.sessionID           = generateHashID();
+        setSessionID(generateTimeHashID());
+        serverID = serverSocketManager.getSessionID();
     }
 
     @Override
@@ -64,8 +69,14 @@ public class WorkerSocketManager extends AbstractSocketManager {
     }
 
     public void sendAuthApproval(boolean approved) {
-        AuthResponsePacket authResponsePacket = new AuthResponsePacket(approved ? sessionID : -1);
+        AuthResponsePacket authResponsePacket = new AuthResponsePacket(approved ? getSessionID() : -1);
         queueTransmission(authResponsePacket);
     }
 
+    @Override
+    public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
+        if (appPacket.getSignal() != ProtocolSignal.AUTH_RESPONSE)//only AUTH_RESPONSE delivers sessionID, others return serverID
+            appPacket.setAuth(getSessionID());
+        super.queueTransmission(appPacket);
+    }
 }

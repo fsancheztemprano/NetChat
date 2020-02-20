@@ -66,6 +66,9 @@ public class ClientControl {
     private PasswordField fieldLoginPassword;
 
     @FXML
+    public Button btnLogOut;
+
+    @FXML
     private Button btnLogin;
 
     @FXML
@@ -174,6 +177,22 @@ public class ClientControl {
     }
 
     @FXML
+    void btnLogOutAction(ActionEvent actionEvent) {
+        ClientFacade.inst().logout();
+        cleanUpChatPane();
+    }
+
+    private void cleanUpChatPane() {
+        Platform.runLater(() -> {
+            tabChat.setDisable(true);
+            listViewChats.getItems().clear();
+            listViewGroups.getItems().clear();
+            tabPaneChats.getTabs().remove(1, tabPaneChats.getTabs().size());
+            tabPaneGroups.getTabs().remove(1, tabPaneGroups.getTabs().size());
+        });
+    }
+
+    @FXML
     void initialize() {
         assert tabPane != null : "fx:id=\"tabPane\" was not injected: check your FXML file 'ClientPane.fxml'.";
         assert tabConnect != null : "fx:id=\"tabConnect\" was not injected: check your FXML file 'ClientPane.fxml'.";
@@ -220,10 +239,14 @@ public class ClientControl {
     public void authResponseReceived(AuthResponsePacket authResponsePacket) {
         if (authResponsePacket.getAuth() == -1) {
             FxDialogs.showError("Auth Failed", "Auth Failed", "Auth Failed");
-            Platform.runLater(() -> tabChat.setDisable(true));
+            Platform.runLater(() -> {
+                tabChat.setDisable(true);
+            });
         } else {
             logOutput("Login Success");
-            Platform.runLater(() -> tabChat.setDisable(false));
+            Platform.runLater(() -> {
+                tabChat.setDisable(false);
+            });
         }
     }
 
@@ -242,7 +265,7 @@ public class ClientControl {
                 circleClientStatus.setFill(Color.ORANGERED);
                 btnConnect.setDisable(false);
                 tabLogin.setDisable(true);
-                tabChat.setDisable(true);
+                cleanUpChatPane();
                 tabPane.getSelectionModel().select(tabConnect);
             });
         }

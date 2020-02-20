@@ -65,10 +65,11 @@
                    </font>
                  </Label>
                  <Label text="Username" />
-                 <TextField fx:id="fieldLoginUsername" onAction="#btnLoginAction" />
+                 <TextField fx:id="fieldLoginUsername" onAction="#btnLoginAction" text="admin" />
                  <Label text="Password" />
-                 <PasswordField fx:id="fieldLoginPassword" onAction="#btnLoginAction" />
-                 <Button fx:id="btnLogin" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnLoginAction" text="Login" VBox.vgrow="ALWAYS" />
+                 <PasswordField fx:id="fieldLoginPassword" onAction="#btnLoginAction" text="admin" />
+                 <Button fx:id="btnLogin" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnLoginAction" text="Log In" VBox.vgrow="ALWAYS" />
+                 <Button fx:id="btnLogOut" contentDisplay="RIGHT" layoutX="20.0" layoutY="189.0" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnLogOutAction" text="Log Out" />
                </children>
                <padding>
                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
