@@ -23,8 +23,8 @@ public abstract class ActivableNotifier extends Activable {
     @Override
     public void setActive(boolean active) {
         this.active.set(active);
-        Boolean boxed = active;
-        socketEventBus.post(boxed);
+        Boolean boxedActive = active;
+        socketEventBus.post(boxedActive);
     }
 
     public void log(String output) {

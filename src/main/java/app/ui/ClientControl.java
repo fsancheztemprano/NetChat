@@ -1,112 +1,3 @@
-//package app.ui;
-//
-//import static tools.Asserts.isValidPort;
-//
-//import app.core.ClientFacade;
-//import app.core.IClientStatusListener;
-//import app.core.packetmodel.AuthResponsePacket;
-//import com.google.common.eventbus.Subscribe;
-//import java.io.IOException;
-//import java.net.URL;
-//import java.util.ResourceBundle;
-//import javafx.application.Platform;
-//import javafx.event.ActionEvent;
-//import javafx.fxml.FXML;
-//import javafx.fxml.FXMLLoader;
-//import javafx.scene.control.Button;
-//import javafx.scene.control.Tab;
-//import javafx.scene.control.TabPane;
-//import javafx.scene.control.TextArea;
-//import javafx.scene.control.TextField;
-//import javafx.scene.layout.VBox;
-//import javafx.scene.paint.Color;
-//import javafx.scene.shape.Circle;
-//import tools.fx.FxDialogs;
-//
-//public class ClientControl extends TabPane implements IClientStatusListener {
-//    @FXML
-//    public Tab tabLogin;
-//    @FXML
-//    public Tab tabChat;
-//    @FXML
-//    private ResourceBundle resources;
-//
-//    @FXML
-//    private URL location;
-//
-//    @FXML
-//    private TabPane tabPane;
-//
-//    @FXML
-//    private Tab tabConnect;
-//
-//    @FXML
-//    private TextField txtFieldPort;
-//
-//    @FXML
-//    private TextField txtFieldIP;
-//
-//    @FXML
-//    private Button btnConnect;
-//
-//    @FXML
-//    private Circle circleClientStatus;
-//
-//    @FXML
-//    private Button btnDisconnect;
-//
-//    @FXML
-//    private TextArea txtAreaClientLog;
-//
-//    @FXML
-//    private Button btnExit;
-//
-//
-//    private ChatControl chatControl;
-//
-//    @FXML
-//    void initialize() {
-//        assert tabPane != null : "fx:id=\"tabPane\" was not injected: check your FXML file 'ClientPane.fxml'.";
-//        assert tabConnect != null : "fx:id=\"tabConnect\" was not injected: check your FXML file 'ClientPane.fxml'.";
-//        assert txtFieldPort != null : "fx:id=\"txtFieldPort\" was not injected: check your FXML file 'ClientPane.fxml'.";
-//        assert txtFieldIP != null : "fx:id=\"txtFieldIP\" was not injected: check your FXML file 'ClientPane.fxml'.";
-//        assert btnConnect != null : "fx:id=\"btnConnect\" was not injected: check your FXML file 'ClientPane.fxml'.";
-//        assert circleClientStatus != null : "fx:id=\"circleClientStatus\" was not injected: check your FXML file 'ClientPane.fxml'.";
-//        assert btnDisconnect != null : "fx:id=\"btnDisconnect\" was not injected: check your FXML file 'ClientPane.fxml'.";
-//        assert txtAreaClientLog != null : "fx:id=\"txtAreaClientLog\" was not injected: check your FXML file 'ClientPane.fxml'.";
-//        assert btnExit != null : "fx:id=\"btnExit\" was not injected: check your FXML file 'ClientPane.fxml'.";
-//
-//        loadClientPane();
-//        ClientFacade.inst().setListener(this);
-//    }
-//
-
-//
-//    private void loadClientPane() {
-//        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ChatPane.fxml"));
-//        try {
-//            VBox root = loader.load();
-//            chatControl = loader.getController();
-//            tabLogin.setContent(root);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            tabLogin.setDisable(true);
-//        }
-//    }
-//
-
-//
-
-//
-//    @Override
-//    public void onChatMessageReceived(String username, String message) {
-//        Platform.runLater(() -> chatControl.areaChatLog.appendText(username + ": " + message + "\n"));
-//    }
-//
-
-//}
-///
-
 package app.ui;
 
 import app.core.ClientFacade;
@@ -323,19 +214,21 @@ public class ClientControl {
     public void authResponseReceived(AuthResponsePacket authResponsePacket) {
         if (authResponsePacket.getAuth() == -1) {
             FxDialogs.showError("Auth Failed", "Auth Failed", "Auth Failed");
+            Platform.runLater(() -> tabChat.setDisable(true));
         } else {
             logOutput("Login Success");
-
+            Platform.runLater(() -> tabChat.setDisable(false));
         }
     }
 
     @Subscribe
-    public void socketStatusChanged(boolean active) {
+    public void socketStatusChanged(Boolean active) {
         if (active) {
             Platform.runLater(() -> {
                 circleClientStatus.setFill(Color.LIMEGREEN);
                 btnConnect.setDisable(true);
                 tabLogin.setDisable(false);
+
                 tabPane.getSelectionModel().select(tabLogin);
             });
         } else {
@@ -343,6 +236,7 @@ public class ClientControl {
                 circleClientStatus.setFill(Color.ORANGERED);
                 btnConnect.setDisable(false);
                 tabLogin.setDisable(true);
+                tabChat.setDisable(true);
                 tabPane.getSelectionModel().select(tabConnect);
             });
         }
