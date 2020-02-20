@@ -154,7 +154,13 @@ public class ClientControl {
 
     @FXML
     void btnLoginAction(ActionEvent event) {
-
+        String username = fieldLoginUsername.getText();
+        String password = fieldLoginPassword.getText();
+        if (username.length() < 4 || password.length() < 4) {
+            FxDialogs.showError("User Pass Error", "User / Pass too short");
+            return;
+        }
+        ClientFacade.inst().login(username, password);
     }
 
     @FXML

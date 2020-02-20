@@ -21,8 +21,8 @@ public class ServerFacade {
     }
 
     private ServerSocketManager serverManager;
-    private String hostname;
-    private int port;
+    private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
+    private int port = Globals.DEFAULT_SERVER_PORT;
     private Object listener = null;
 
     public ServerSocketManager getServerManager() {
@@ -35,7 +35,8 @@ public class ServerFacade {
         serverManager.setHostname(hostname);
         serverManager.setPort(port);
         serverManager.register(ChatService.getInstance());
-        serverManager.register(listener);
+        if (listener != null)
+            serverManager.register(listener);
         new Thread(serverManager).start();
     }
 
@@ -44,7 +45,8 @@ public class ServerFacade {
             new Thread(() -> {
                 serverManager.serverShutdown();
                 serverManager.unregister(ChatService.getInstance());
-                serverManager.unregister(listener);
+                if (listener != null)
+                    serverManager.unregister(listener);
                 serverManager = null;
             }).start();
         }

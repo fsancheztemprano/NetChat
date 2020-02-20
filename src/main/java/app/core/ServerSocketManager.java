@@ -1,6 +1,7 @@
 package app.core;
 
 import app.core.packetmodel.AppPacket;
+import app.core.packetmodel.AppPacket.ProtocolSignal;
 import com.google.common.eventbus.EventBus;
 import java.io.IOException;
 import java.net.BindException;
@@ -18,7 +19,6 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
-    private int activeClients = 0;
 
     private ServerSocket serverSocket = null;
     private InetSocketAddress inetSocketAddress;
@@ -154,9 +154,11 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
     }
 
 
-    public void queueTransmission(String message) {
-//        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, serverSocket.getLocalSocketAddress(), "server", message);
-//        transmitToAllClients(newMessage);
+    public void queueServerBroadcast(String message) {
+        AppPacket newMessage = new AppPacket(ProtocolSignal.SERVER_BROADCAST);
+        newMessage.setUsername("SERVER");
+        newMessage.setMessage(message);
+        transmitToAllClients(newMessage);
     }
 
     public void setHostname(String hostname) {

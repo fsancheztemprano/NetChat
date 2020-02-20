@@ -132,6 +132,7 @@ public class AppPacket implements Serializable {
         AUTH_REQUEST,
         AUTH_RESPONSE,
         NEW_PRIVATE_MSG,
-        NEW_GROUP_MSG
+        NEW_GROUP_MSG,
+        SERVER_BROADCAST
     }
 }

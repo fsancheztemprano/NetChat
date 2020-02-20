@@ -19,8 +19,8 @@ public class ClientFacade {
     }
 
     private ClientSocketManager clientSocketManager = null;
-    private String hostname;
-    private int port;
+    private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
+    private int port = Globals.DEFAULT_SERVER_PORT;
     private Object listener = null;
 
 
@@ -30,14 +30,19 @@ public class ClientFacade {
         clientSocketManager = new ClientSocketManager();
         clientSocketManager.setHostname(hostname);
         clientSocketManager.setPort(port);
-        clientSocketManager.getSocketEventBus().register(listener);
+        if (listener != null)
+            clientSocketManager.register(listener);
         new Thread(() -> clientSocketManager.startSocketManager()).start();
     }
 
     public void disconnect() {
         if (clientSocketManager != null) {
             ClientSocketManager c = clientSocketManager;
-            new Thread(c::stopSocketManager).start();
+            new Thread(() -> {
+                c.stopSocketManager();
+                if (listener != null)
+                    c.unregister(listener);
+            }).start();
         }
         clientSocketManager = null;
     }
