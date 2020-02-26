@@ -4,7 +4,6 @@ import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AuthRemovePacket;
 import app.core.packetmodel.AuthRequestPacket;
 import com.google.common.eventbus.EventBus;
-import com.google.common.flogger.StackSize;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -39,11 +38,11 @@ public class ClientNodeManager extends AbstractNodeManager {
             poolUpChildProcesses();
             log("Conectado: " + addr.getAddress());
 //        } catch (ConnectException ce) {
-//            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ce).log("ER-CSM-0001");
+//            Flogger.atWarning().withCause(ce).log("ER-CSM-0001");
 //        } catch (IOException ce) {
-//            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ce).log("ER-CSM-0001");
+//            Flogger.atWarning().withCause(ce).log("ER-CSM-0001");
         } catch (Exception ce) {
-            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ce).log("ER-CSM-0000");
+            Flogger.atWarning().withCause(ce).log("ER-CSM-0000");
             stopSocketManager();
         }
     }

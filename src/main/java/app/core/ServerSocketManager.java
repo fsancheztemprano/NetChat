@@ -3,7 +3,6 @@ package app.core;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 import com.google.common.eventbus.EventBus;
-import com.google.common.flogger.StackSize;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -73,7 +72,7 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
         } catch (IOException ioe) {
             log("Deteniendo Servidor");
         } catch (Exception e) {
-            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(e).log("ER-SSM-0000");
+            Flogger.atWarning().withCause(e).log("ER-SSM-0000");
         } finally {
             serverShutdown();
         }

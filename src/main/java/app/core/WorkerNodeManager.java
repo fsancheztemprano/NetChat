@@ -3,7 +3,6 @@ package app.core;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 import app.core.packetmodel.AuthResponsePacket;
-import com.google.common.flogger.StackSize;
 import java.net.Socket;
 import java.util.concurrent.Executors;
 import javax.annotation.Nonnull;
@@ -34,7 +33,7 @@ public class WorkerNodeManager extends AbstractNodeManager {
 //        } catch (IOException e) {
 //            Flogger.atWarning().withCause(e).log("ER-WSM-0001");
         } catch (Exception e) {
-            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(e).log("ER-WSM-0000");
+            Flogger.atWarning().withCause(e).log("ER-WSM-0000");
             stopSocketManager();
         }
     }

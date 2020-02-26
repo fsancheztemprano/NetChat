@@ -1,6 +1,5 @@
 package app.core;
 
-import com.google.common.flogger.StackSize;
 import java.time.LocalDateTime;
 import tools.log.Flogger;
 
@@ -28,10 +27,10 @@ public class HeartbeatDaemon extends Activable implements Runnable {
                 }
                 Thread.sleep(Globals.HEARTBEAT_SLEEP_INTERVAL);
             } catch (InterruptedException | NullPointerException ie) {
-                Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ie).log("ER-HD-0001");
+                Flogger.atWarning().withCause(ie).log("ER-HD-0001");
                 setActive(false);
             } catch (Exception e) {
-                Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(e).log("ER-HD-0000");
+                Flogger.atWarning().withCause(e).log("ER-HD-0000");
                 setActive(false);
             }
         }

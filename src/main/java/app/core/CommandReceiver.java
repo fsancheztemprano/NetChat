@@ -1,7 +1,6 @@
 package app.core;
 
 import app.core.packetmodel.AppPacket;
-import com.google.common.flogger.StackSize;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -31,16 +30,16 @@ public class CommandReceiver extends Activable implements Runnable {
                         socketManager.getCommandProcessor().queueCommandProcess(appPacket);
                     } catch (SocketException se) {
                         setActive(false);
-                        Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost, Event Bus?
+                        Flogger.atWarning().withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost, Event Bus?
                         Thread.currentThread().interrupt();
                     } catch (IOException ioe) {
                         setActive(false);
-                        Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ioe).log("ER-CR-0002");
+                        Flogger.atWarning().withCause(ioe).log("ER-CR-0002");
                     } catch (ClassNotFoundException cnfe) {
-                        Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(cnfe).log("ER-CR-0003");
+                        Flogger.atWarning().withCause(cnfe).log("ER-CR-0003");
                         setActive(false);
                     } catch (Exception e) {
-                        Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(e).log("ER-CR-0000");
+                        Flogger.atWarning().withCause(e).log("ER-CR-0000");
                         setActive(false);
                     }
                 }

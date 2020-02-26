@@ -1,7 +1,6 @@
 package app.core;
 
 import app.core.packetmodel.AppPacket;
-import com.google.common.flogger.StackSize;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -43,17 +42,17 @@ public class CommandTransmitter extends Activable implements Runnable {
                         socketManager.log("Out: " + appPacket.toString());
                     }
                 } catch (SocketException se) {
-                    Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(se).log("ER-CT-0001");       //(outputStream closed) TODO msg:Server connection lost
+                    Flogger.atWarning().withCause(se).log("ER-CT-0001");       //(outputStream closed) TODO msg:Server connection lost
                     setActive(false);
                     Thread.currentThread().interrupt();
                 } catch (InterruptedException ie) {
-                    Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ie).log("ER-CT-0002");
+                    Flogger.atWarning().withCause(ie).log("ER-CT-0002");
                     setActive(false);
                 } catch (IOException ioe) {
-                    Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ioe).log("ER-CT-0003");
+                    Flogger.atWarning().withCause(ioe).log("ER-CT-0003");
                     setActive(false);
                 } catch (Exception e) {
-                    Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(e).log("ER-CT-0004");
+                    Flogger.atWarning().withCause(e).log("ER-CT-0004");
                     setActive(false);
                 }
             }
