@@ -1,10 +1,13 @@
 package app.core.events;
 
-public class SocketStatusEvent {
+import app.core.ActivableSocketManager;
+
+public class SocketStatusEvent extends SocketEvent {
 
     private final boolean active;
 
-    public SocketStatusEvent(boolean active) {
+    public SocketStatusEvent(ActivableSocketManager socket, boolean active) {
+        super(socket);
         this.active = active;
     }
 

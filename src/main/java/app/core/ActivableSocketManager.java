@@ -4,7 +4,7 @@ import app.core.events.SocketStatusEvent;
 import com.google.common.eventbus.EventBus;
 
 @SuppressWarnings("UnstableApiUsage")
-public abstract class ActivableNotifier extends Activable {
+public abstract class ActivableSocketManager extends Activable {
 
 
     protected final EventBus socketEventBus = new EventBus(getSessionID() + "");
@@ -24,7 +24,7 @@ public abstract class ActivableNotifier extends Activable {
     @Override
     public void setActive(boolean active) {
         this.active.set(active);
-        socketEventBus.post(new SocketStatusEvent(active));
+        socketEventBus.post(new SocketStatusEvent(this, active));
     }
 
     public void log(String output) {

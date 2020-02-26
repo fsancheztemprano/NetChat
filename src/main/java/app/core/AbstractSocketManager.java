@@ -1,6 +1,6 @@
 package app.core;
 
-public class AbstractSocketManager extends ActivableNotifier {
+public class AbstractSocketManager extends ActivableSocketManager {
 
     protected AbstractCommandProcessor commandProcessor;
 
