@@ -1,14 +1,14 @@
 package app.core;
 
 import app.core.packetmodel.AppPacket;
-import app.core.packetmodel.HeartbeatPacket;
+import app.core.packetmodel.AppPacket.ProtocolSignal;
 import java.time.LocalDateTime;
 import tools.log.Flogger;
 
 public class HeartbeatDaemon extends Activable implements Runnable {
 
     private final AbstractNodeManager manager;
-    private final AppPacket heartbeatPacket = new HeartbeatPacket();
+    private final AppPacket heartbeatPacket = new AppPacket(ProtocolSignal.HEARTBEAT);
     private LocalDateTime lastHeartbeat;
 
     public HeartbeatDaemon(AbstractNodeManager socketManager) {

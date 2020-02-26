@@ -1,8 +1,8 @@
 package app.ui;
 
 import app.core.ClientFacade;
+import app.core.events.ClientAuthResponseEvent;
 import app.core.events.SocketStatusEvent;
-import app.core.packetmodel.AuthResponsePacket;
 import com.google.common.eventbus.Subscribe;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -240,8 +240,8 @@ public class ClientControl {
     }
 
     @Subscribe
-    public void authResponseReceived(AuthResponsePacket authResponsePacket) {
-        if (authResponsePacket.getAuth() == -1) {
+    public void authResponseReceived(ClientAuthResponseEvent authResponseEvent) {
+        if (authResponseEvent.getAuth() == -1) {
             Platform.runLater(() -> {
                 FxDialogs.showError("Auth Failed", "Auth Failed", "Auth Failed");
                 tabChat.setDisable(true);
@@ -256,8 +256,8 @@ public class ClientControl {
     }
 
     @Subscribe
-    public void socketStatusChanged(SocketStatusEvent event) {
-        if (event.isActive()) {
+    public void socketStatusChanged(SocketStatusEvent socketStatusEvent) {
+        if (socketStatusEvent.isActive()) {
             Platform.runLater(() -> {
                 circleClientStatus.setFill(Color.LIMEGREEN);
                 btnConnect.setDisable(true);

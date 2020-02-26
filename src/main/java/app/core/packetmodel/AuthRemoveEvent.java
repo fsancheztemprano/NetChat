@@ -1,8 +1,8 @@
 package app.core.packetmodel;
 
-public class AuthRemovePacket extends AppPacket {
+public class AuthRemoveEvent extends AppPacket {
 
-    public AuthRemovePacket() {
+    public AuthRemoveEvent() {
         super(ProtocolSignal.AUTH_REMOVE);
     }
 }

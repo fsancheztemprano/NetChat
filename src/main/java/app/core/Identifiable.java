@@ -1,9 +1,7 @@
 package app.core;
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 import java.util.concurrent.atomic.AtomicLong;
+import tools.HashTools;
 
 public abstract class Identifiable {
 
@@ -25,12 +23,7 @@ public abstract class Identifiable {
 
     @SuppressWarnings("UnstableApiUsage")
     protected static long generateLongHashID(long seed) {
-        HashFunction hasher = Hashing.goodFastHash(Long.SIZE);
-        HashCode idHash = hasher.newHasher()
-                                .putLong(seed)
-                                .hash();
-        return idHash.asLong();
-
+        return HashTools.goodFastHash(seed);
     }
 
     protected static long generateTimeHashID() {

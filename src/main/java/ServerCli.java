@@ -1,9 +1,7 @@
-package app.cli;
-
 import app.core.ServerFacade;
 import java.util.Scanner;
 
-public class ConsoleServer {
+public class ServerCli {
 
     public static void main(String[] args) throws InterruptedException {
         ServerFacade.inst().startServer();

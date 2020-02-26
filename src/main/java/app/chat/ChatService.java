@@ -1,13 +1,11 @@
 package app.chat;
 
 import app.core.WorkerNodeManager;
-import app.core.packetmodel.AuthRemovePacket;
-import app.core.packetmodel.AuthRequestPacket;
+import app.core.packetmodel.AuthRemoveEvent;
+import app.core.packetmodel.AuthRequestEvent;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 import java.util.concurrent.ConcurrentHashMap;
+import tools.HashTools;
 
 public class ChatService {
 
@@ -28,19 +26,13 @@ public class ChatService {
         return instance;
     }
 
-    private ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login) TODO: move to Persistance layer
+    private ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login) TODO: move to Persistence layer
     private ConcurrentHashMap<Long, User> sessionMap = new ConcurrentHashMap<>();
 
-
-    @SuppressWarnings("UnstableApiUsage")
     @Subscribe
-    public void validateLoginRequest(AuthRequestPacket loginRequest) {
+    public void validateLoginRequest(AuthRequestEvent loginRequest) {
         boolean validated = false;
-        HashFunction hasher = Hashing.sha256();
-        HashCode sha256 = hasher.newHasher()
-                                .putUnencodedChars(loginRequest.getPassword())
-                                .hash();
-        String reHashedPass = sha256.toString();
+        String reHashedPass = HashTools.getSha256(loginRequest.getPassword());
 
         User receivedUserDetails = new User(loginRequest.getUsername(), reHashedPass);
         User existingUser = userRepo.putIfAbsent(loginRequest.getUsername(), receivedUserDetails);
@@ -53,10 +45,13 @@ public class ChatService {
             sessionMap.put(loginRequest.getAuth(), existingUser);
         }
         ((WorkerNodeManager) loginRequest.getHandler()).sendAuthApproval(validated);
+//        if(validated){
+//            sendListOfUsersLoggedIn(loginRequest.getUsername());
+//        }
     }
 
     @Subscribe
-    public void userLogOut(AuthRemovePacket authRemovePacket) {
-        sessionMap.remove(authRemovePacket.getAuth());
+    public void userLogOut(AuthRemoveEvent authRemoveEvent) {
+        sessionMap.remove(authRemoveEvent.getAuth());
     }
 }

@@ -1,14 +1,12 @@
 package app.core;
 
 import app.core.packetmodel.AppPacket;
-import app.core.packetmodel.AuthRemovePacket;
-import app.core.packetmodel.AuthRequestPacket;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
+import app.core.packetmodel.AuthRemoveEvent;
+import app.core.packetmodel.AuthRequestEvent;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import javax.annotation.Nonnull;
+import tools.HashTools;
 import tools.log.Flogger;
 
 public class ClientNodeManager extends AbstractNodeManager {
@@ -73,12 +71,8 @@ public class ClientNodeManager extends AbstractNodeManager {
     void sendLoginRequest(@Nonnull final String username, @Nonnull final String password) {
         if (username.length() < 4 || password.length() < 4)
             return;
-        HashFunction hasher = Hashing.sha256();
-        HashCode sha256 = hasher.newHasher()
-                                .putUnencodedChars(password)
-                                .hash();
-        String hashedPass = sha256.toString();//1st time sha256
-        AppPacket loginRequest = new AuthRequestPacket(username, hashedPass);
+        String hashedPass = HashTools.getSha256(password);
+        AppPacket loginRequest = new AuthRequestEvent(username, hashedPass);
         queueTransmission(loginRequest);
     }
 
@@ -89,7 +83,7 @@ public class ClientNodeManager extends AbstractNodeManager {
     }
 
     public void sendLogOutAction() {
-        queueTransmission(new AuthRemovePacket());
+        queueTransmission(new AuthRemoveEvent());
         setSessionID(-1);
     }
 }

@@ -4,7 +4,6 @@ import app.core.events.WorkerSessionEndEvent;
 import app.core.events.WorkerSessionStartEvent;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
-import app.core.packetmodel.AuthResponsePacket;
 import java.net.Socket;
 import javax.annotation.Nonnull;
 import tools.log.Flogger;
@@ -58,7 +57,8 @@ public class WorkerNodeManager extends AbstractNodeManager {
     }
 
     public void sendAuthApproval(boolean approved) {
-        AuthResponsePacket authResponsePacket = new AuthResponsePacket(approved ? getSessionID() : -1);
+        AppPacket authResponsePacket = new AppPacket(ProtocolSignal.AUTH_RESPONSE);
+        authResponsePacket.setAuth(approved ? getSessionID() : -1);
         queueTransmission(authResponsePacket);
     }
 

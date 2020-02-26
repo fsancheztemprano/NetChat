@@ -1,5 +1,3 @@
-package app.ui;
-
 import java.io.IOException;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
