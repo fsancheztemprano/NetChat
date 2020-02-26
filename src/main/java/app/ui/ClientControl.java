@@ -1,6 +1,7 @@
 package app.ui;
 
 import app.core.ClientFacade;
+import app.core.events.SocketStatusEvent;
 import app.core.packetmodel.AuthResponsePacket;
 import com.google.common.eventbus.Subscribe;
 import java.net.URL;
@@ -255,8 +256,8 @@ public class ClientControl {
     }
 
     @Subscribe
-    public void socketStatusChanged(Boolean active) {
-        if (active) {
+    public void socketStatusChanged(SocketStatusEvent event) {
+        if (event.isActive()) {
             Platform.runLater(() -> {
                 circleClientStatus.setFill(Color.LIMEGREEN);
                 btnConnect.setDisable(true);

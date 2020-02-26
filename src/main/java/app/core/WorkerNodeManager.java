@@ -1,7 +1,7 @@
 package app.core;
 
-import app.core.events.SessionEndEvent;
-import app.core.events.SessionStartEvent;
+import app.core.events.WorkerSessionEndEvent;
+import app.core.events.WorkerSessionStartEvent;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 import app.core.packetmodel.AuthResponsePacket;
@@ -12,12 +12,13 @@ import tools.log.Flogger;
 public class WorkerNodeManager extends AbstractNodeManager {
 
     private final long serverID;
+    private final AbstractCommandProcessor serverCommandProcessor;
 
-
-    public WorkerNodeManager(Socket managedSocket, long serverID) {
+    public WorkerNodeManager(ServerSocketManager serverSocketManager, Socket managedSocket) {
         super(managedSocket);
-        this.commandProcessor = new WorkerCommandProcessor(this);
-        this.serverID         = serverID;
+        this.commandProcessor       = new WorkerCommandProcessor(this);
+        this.serverID               = serverSocketManager.getSessionID();
+        this.serverCommandProcessor = serverSocketManager.getCommandProcessor();
     }
 
     @Override
@@ -53,7 +54,7 @@ public class WorkerNodeManager extends AbstractNodeManager {
     @Override
     public void setActive(boolean active) {
         this.active.set(active);
-        socketEventBus.post(active ? new SessionStartEvent(this) : new SessionEndEvent(this));
+        socketEventBus.post(active ? new WorkerSessionStartEvent(this) : new WorkerSessionEndEvent(this));
     }
 
     public void sendAuthApproval(boolean approved) {
@@ -70,4 +71,7 @@ public class WorkerNodeManager extends AbstractNodeManager {
         super.queueTransmission(appPacket);
     }
 
+    public AbstractCommandProcessor getServerCommandProcessor() {
+        return serverCommandProcessor;
+    }
 }

@@ -1,8 +1,8 @@
 package app.core;
 
-import app.core.events.ProcessPacketEvent;
-import app.core.events.SessionEndEvent;
-import app.core.events.SessionStartEvent;
+import app.core.events.ServerActiveClientsEvent;
+import app.core.events.WorkerSessionEndEvent;
+import app.core.events.WorkerSessionStartEvent;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 import com.google.common.eventbus.Subscribe;
@@ -53,7 +53,7 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
                 Socket clientSocket = serverSocket.accept();
                 clientSocket.setKeepAlive(true);
                 log("Conexion entrante: " + clientSocket.getRemoteSocketAddress());
-                WorkerNodeManager workerSocketManager = new WorkerNodeManager(clientSocket, getSessionID());
+                WorkerNodeManager workerSocketManager = new WorkerNodeManager(this, clientSocket);
                 workerSocketManager.register(this);
                 if (workerList.size() <= Globals.MAX_ACTIVE_CLIENTS) {
                     log("Conexion aceptada: " + clientSocket.getRemoteSocketAddress());
@@ -151,21 +151,17 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
 
     //Subscribe methods listening to workers
     @Subscribe
-    public void sessionStarted(SessionStartEvent event) {
+    public void sessionStarted(WorkerSessionStartEvent event) {
         workerList.put(event.getEmitter().getSessionID(), event.getEmitter());
-        socketEventBus.post(new Integer(workerList.size()));
+        socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
     }
 
     @Subscribe
-    public void sessionEnded(SessionEndEvent event) {
+    public void sessionEnded(WorkerSessionEndEvent event) {
         event.getEmitter().unregister(this);
         workerList.remove(event.getEmitter().getSessionID());
-        socketEventBus.post(new Integer(workerList.size()));
-    }
+        socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
 
-    @Subscribe
-    public void processPacket(ProcessPacketEvent event) {
-        getCommandProcessor().queueCommandProcess(event.getPacket());
     }
 
     @Subscribe

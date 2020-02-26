@@ -4,7 +4,7 @@ import app.core.WorkerNodeManager;
 
 public abstract class WorkerEvent {
 
-    private WorkerNodeManager emitter;
+    private final WorkerNodeManager emitter;
 
     public WorkerEvent(WorkerNodeManager emitter) {
         this.emitter = emitter;

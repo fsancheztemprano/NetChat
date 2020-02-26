@@ -3,6 +3,8 @@ package app.ui;
 import static tools.Asserts.isValidPort;
 
 import app.core.ServerFacade;
+import app.core.events.ServerActiveClientsEvent;
+import app.core.events.SocketStatusEvent;
 import com.google.common.eventbus.Subscribe;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -86,13 +88,13 @@ public class ServerControl extends VBox {
     }
 
     @Subscribe
-    public void activeClientsChange(Integer activeClients) {
-        Platform.runLater(() -> labelNumClients.setText(Integer.toString(activeClients)));
+    public void activeClientsChange(ServerActiveClientsEvent event) {
+        Platform.runLater(() -> labelNumClients.setText(Integer.toString(event.getActiveClients())));
     }
 
     @Subscribe
-    public void serverStatusChange(Boolean active) {
-        if (active)
+    public void serverStatusChange(SocketStatusEvent event) {
+        if (event.isActive())
             Platform.runLater(() -> {
                 circleServerStatus.setFill(Color.LIMEGREEN);
                 btnServerStart.setDisable(true);

@@ -1,5 +1,6 @@
 package app.core;
 
+import app.core.events.SocketStatusEvent;
 import com.google.common.eventbus.EventBus;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -23,8 +24,7 @@ public abstract class ActivableNotifier extends Activable {
     @Override
     public void setActive(boolean active) {
         this.active.set(active);
-        Boolean boxedActive = active;
-        socketEventBus.post(boxedActive);
+        socketEventBus.post(new SocketStatusEvent(active));
     }
 
     public void log(String output) {
