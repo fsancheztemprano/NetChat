@@ -1,26 +1,23 @@
 package app.core;
 
+import app.core.events.SessionEndEvent;
+import app.core.events.SessionStartEvent;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 import app.core.packetmodel.AuthResponsePacket;
 import java.net.Socket;
-import java.util.concurrent.Executors;
 import javax.annotation.Nonnull;
 import tools.log.Flogger;
 
 public class WorkerNodeManager extends AbstractNodeManager {
 
-    private ServerSocketManager serverSocketManager;
     private final long serverID;
 
 
-    public WorkerNodeManager(ServerSocketManager serverSocketManager, Socket managedSocket) {
-        this.serverSocketManager = serverSocketManager;
-        this.managedSocket       = managedSocket;
-        this.commandProcessor    = new WorkerCommandProcessor(this);
-        this.socketEventBus      = serverSocketManager.getSocketEventBus();
-        this.serverID            = serverSocketManager.getSessionID();
-        managerPool              = Executors.newFixedThreadPool(4);
+    public WorkerNodeManager(Socket managedSocket, long serverID) {
+        super(managedSocket);
+        this.commandProcessor = new WorkerCommandProcessor(this);
+        this.serverID         = serverID;
     }
 
     @Override
@@ -28,7 +25,6 @@ public class WorkerNodeManager extends AbstractNodeManager {
         try {
             setActive(true);
             setStreams();
-            initializeChildProcesses(commandProcessor);
             poolUpChildProcesses();
 //        } catch (IOException e) {
 //            Flogger.atWarning().withCause(e).log("ER-WSM-0001");
@@ -39,10 +35,9 @@ public class WorkerNodeManager extends AbstractNodeManager {
     }
 
     @Override
-    public void stopSocketManager() {
+    public synchronized void stopSocketManager() {
         if (isActive()) {
             try {
-                serverSocketManager.removeWorker(this);
                 disableChildProcesses();
                 closeSocket();
                 closePool();
@@ -55,9 +50,10 @@ public class WorkerNodeManager extends AbstractNodeManager {
         }
     }
 
-    @Override //no notification sent
+    @Override
     public void setActive(boolean active) {
         this.active.set(active);
+        socketEventBus.post(active ? new SessionStartEvent(this) : new SessionEndEvent(this));
     }
 
     public void sendAuthApproval(boolean approved) {
@@ -74,7 +70,4 @@ public class WorkerNodeManager extends AbstractNodeManager {
         super.queueTransmission(appPacket);
     }
 
-    public ServerSocketManager getServerSocketManager() {
-        return serverSocketManager;
-    }
 }

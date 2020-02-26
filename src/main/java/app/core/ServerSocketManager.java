@@ -1,8 +1,11 @@
 package app.core;
 
+import app.core.events.ProcessPacketEvent;
+import app.core.events.SessionEndEvent;
+import app.core.events.SessionStartEvent;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
-import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -14,20 +17,21 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentHashMap;
 import tools.log.Flogger;
 
+@SuppressWarnings("UnstableApiUsage")
 public class ServerSocketManager extends AbstractSocketManager implements Runnable {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
 
-    private ServerSocket serverSocket = null;
+    private final ServerSocket serverSocket;
     private InetSocketAddress inetSocketAddress;
 
 
     private final ConcurrentHashMap<Long, WorkerNodeManager> workerList;
 
 
-    public ServerSocketManager() {
-        socketEventBus   = new EventBus("ServerEventBus");
+    public ServerSocketManager() throws IOException {
+        serverSocket     = new ServerSocket();
         workerList       = new ConcurrentHashMap<>();
         commandProcessor = new ServerCommandProcessor(this);
     }
@@ -37,7 +41,6 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
         try {
             new Thread(commandProcessor).start();
             log("Creando socket servidor. Clientes Max: " + Globals.MAX_ACTIVE_CLIENTS);
-            serverSocket      = new ServerSocket();
             inetSocketAddress = (hostname.length() > 6 && InetAddress.getByName(hostname).isReachable(100))
                                 ? new InetSocketAddress(hostname, port)
                                 : new InetSocketAddress(InetAddress.getLocalHost(), port);
@@ -50,12 +53,11 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
                 Socket clientSocket = serverSocket.accept();
                 clientSocket.setKeepAlive(true);
                 log("Conexion entrante: " + clientSocket.getRemoteSocketAddress());
-                WorkerNodeManager workerSocketManager = new WorkerNodeManager(this, clientSocket);
-                if (workerList.size() < Globals.MAX_ACTIVE_CLIENTS) {
-                    workerList.put(workerSocketManager.getSessionID(), workerSocketManager);
+                WorkerNodeManager workerSocketManager = new WorkerNodeManager(clientSocket, getSessionID());
+                workerSocketManager.register(this);
+                if (workerList.size() <= Globals.MAX_ACTIVE_CLIENTS) {
                     log("Conexion aceptada: " + clientSocket.getRemoteSocketAddress());
                     workerSocketManager.startSocketManager();
-                    socketEventBus.post(new Integer(workerList.size()));
                 } else {
                     log("Conexion Rechazada, Servidor Lleno. (" + Globals.MAX_ACTIVE_CLIENTS + ")");
                     clientSocket.close();
@@ -84,10 +86,6 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
                 closeServerSocket();
                 stopAllClients();
                 disableCommandProcessor();
-
-                serverSocket      = null;
-                inetSocketAddress = null;
-                commandProcessor  = null;
             } catch (Exception e) {
                 Flogger.atWarning().withCause(e).log("ER-SSM-0001");
             } finally {
@@ -100,12 +98,6 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
 
     public ConcurrentHashMap<Long, WorkerNodeManager> getWorkerList() {
         return workerList;
-    }
-
-    public void removeWorker(WorkerNodeManager workerSocketManager) {
-        log("Conexion finalizada: " + workerSocketManager.managedSocket.getRemoteSocketAddress());
-        workerList.remove(workerSocketManager.getSessionID());
-        socketEventBus.post(new Integer(workerList.size()));
     }
 
     public void transmitToAllClients(AppPacket appPacket) {
@@ -141,7 +133,6 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
     }
 
 
-
     public void queueServerBroadcast(String message) {
         AppPacket newMessage = new AppPacket(ProtocolSignal.SERVER_BROADCAST);
         newMessage.setUsername("SERVER");
@@ -157,4 +148,28 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
         this.port = port;
     }
 
+
+    //Subscribe methods listening to workers
+    @Subscribe
+    public void sessionStarted(SessionStartEvent event) {
+        workerList.put(event.getEmitter().getSessionID(), event.getEmitter());
+        socketEventBus.post(new Integer(workerList.size()));
+    }
+
+    @Subscribe
+    public void sessionEnded(SessionEndEvent event) {
+        event.getEmitter().unregister(this);
+        workerList.remove(event.getEmitter().getSessionID());
+        socketEventBus.post(new Integer(workerList.size()));
+    }
+
+    @Subscribe
+    public void processPacket(ProcessPacketEvent event) {
+        getCommandProcessor().queueCommandProcess(event.getPacket());
+    }
+
+    @Subscribe
+    public void outputLog(String output) {
+        getSocketEventBus().post(output);
+    }
 }

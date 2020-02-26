@@ -52,9 +52,9 @@ public class ClientFacade {
         return clientSocketManager != null && clientSocketManager.isActive();
     }
 
-    public void sendMessage(String username, String message) {
-        new Thread(() -> clientSocketManager.queueTransmission(username, message)).start();
-    }
+//    public void sendMessage(String username, String message) {
+//        new Thread(() -> clientSocketManager.queueTransmission(username, message)).start();
+//    }
 
     public void setHostname(String hostname) {
         this.hostname = hostname;

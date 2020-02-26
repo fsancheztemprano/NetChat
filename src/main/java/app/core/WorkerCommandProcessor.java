@@ -1,5 +1,6 @@
 package app.core;
 
+import app.core.events.ProcessPacketEvent;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 
@@ -9,7 +10,6 @@ public class WorkerCommandProcessor extends AbstractCommandProcessor {
     private final long managerID;
 
     public WorkerCommandProcessor(WorkerNodeManager manager) {
-        super(manager);
         this.workerNodeManager = manager;
         this.managerID         = manager.getSessionID();
     }
@@ -17,6 +17,8 @@ public class WorkerCommandProcessor extends AbstractCommandProcessor {
     @Override
     protected void processCommand(AppPacket appPacket) {
         if (appPacket.getSignal() == ProtocolSignal.AUTH_REQUEST || appPacket.getSignal() == ProtocolSignal.HEARTBEAT || appPacket.getAuth() == managerID)
-            workerNodeManager.getServerSocketManager().getCommandProcessor().processCommand(appPacket);
+            workerNodeManager.getSocketEventBus().post(new ProcessPacketEvent(appPacket));
+        else
+            workerNodeManager.queueTransmission(new AppPacket(ProtocolSignal.UNAUTHORIZED_REQUEST));
     }
 }

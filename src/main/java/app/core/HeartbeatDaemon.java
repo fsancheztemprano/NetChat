@@ -1,12 +1,15 @@
 package app.core;
 
+import app.core.packetmodel.AppPacket;
+import app.core.packetmodel.HeartbeatPacket;
 import java.time.LocalDateTime;
 import tools.log.Flogger;
 
 public class HeartbeatDaemon extends Activable implements Runnable {
 
-    private AbstractNodeManager manager;
-    private LocalDateTime lastHeartbeat = null;
+    private final AbstractNodeManager manager;
+    private final AppPacket heartbeatPacket = new HeartbeatPacket();
+    private LocalDateTime lastHeartbeat;
 
     public HeartbeatDaemon(AbstractNodeManager socketManager) {
         this.manager  = socketManager;
@@ -20,10 +23,10 @@ public class HeartbeatDaemon extends Activable implements Runnable {
         while (isActive()) {
             try {
                 if (Globals.HEARTBEAT_TIMEOUT != 0 && lastHeartbeat != null && lastHeartbeat.plusSeconds(Globals.HEARTBEAT_TIMEOUT).isBefore(LocalDateTime.now())) {
-                    manager.stopSocketManager();
                     manager.log("Heartbeat Timeout");
+                    manager.stopSocketManager();
                 } else if (manager instanceof WorkerNodeManager && (lastHeartbeat == null || lastHeartbeat.plusSeconds(Globals.HEARTBEAT_DELAY).isBefore(LocalDateTime.now()))) {
-                    manager.sendHeartbeatPacket();
+                    manager.queueTransmission(heartbeatPacket);
                 }
                 Thread.sleep(Globals.HEARTBEAT_SLEEP_INTERVAL);
             } catch (InterruptedException | NullPointerException ie) {

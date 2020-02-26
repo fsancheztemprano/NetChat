@@ -1,79 +1,55 @@
 package app.core;
 
 import app.core.packetmodel.AppPacket;
-import app.core.packetmodel.HeartbeatPacket;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import tools.log.Flogger;
 
 public abstract class AbstractNodeManager extends AbstractSocketManager {
 
-    protected Socket managedSocket;
-    protected ExecutorService managerPool;
+    protected final Socket managedSocket;
+    protected final ExecutorService managerPool;
 
-    protected AppPacket heartbeatPacket;
-    protected HeartbeatDaemon heartbeatDaemon;
-    protected CommandReceiver commandReceiver;
-    protected CommandTransmitter commandTransmitter;
+    protected final HeartbeatDaemon heartbeatDaemon;
+    protected final CommandReceiver commandReceiver;
+    protected final CommandTransmitter commandTransmitter;
 
     protected InputStream inputStream;
     protected OutputStream outputStream;
 
-    public Socket getManagedSocket() {
-        return managedSocket;
+    public AbstractNodeManager(Socket managedSocket) {
+        this.managedSocket      = managedSocket;
+        this.managerPool        = Executors.newFixedThreadPool(4);
+        this.heartbeatDaemon    = new HeartbeatDaemon(this);
+        this.commandReceiver    = new CommandReceiver(this);
+        this.commandTransmitter = new CommandTransmitter(this);
     }
 
-    public void setManagedSocket(Socket managedSocket) {
-        this.managedSocket = managedSocket;
+    public Socket getManagedSocket() {
+        return managedSocket;
     }
 
     public ExecutorService getManagerPool() {
         return managerPool;
     }
 
-    public void setManagerPool(ExecutorService managerPool) {
-        this.managerPool = managerPool;
-    }
-
-    public AppPacket getHeartbeatPacket() {
-        return heartbeatPacket != null
-               ? heartbeatPacket
-               : new HeartbeatPacket();
-    }
-
-    public void setHeartbeatPacket(AppPacket heartbeatPacket) {
-        this.heartbeatPacket = heartbeatPacket;
-    }
-
     public HeartbeatDaemon getHeartbeatDaemon() {
         return heartbeatDaemon;
-    }
-
-    public void setHeartbeatDaemon(HeartbeatDaemon heartbeatDaemon) {
-        this.heartbeatDaemon = heartbeatDaemon;
     }
 
     public CommandReceiver getCommandReceiver() {
         return commandReceiver;
     }
 
-    public void setCommandReceiver(CommandReceiver commandReceiver) {
-        this.commandReceiver = commandReceiver;
-    }
-
     public CommandTransmitter getCommandTransmitter() {
         return commandTransmitter;
     }
-
-    public void setCommandTransmitter(CommandTransmitter commandTransmitter) {
-        this.commandTransmitter = commandTransmitter;
-    }
-
 
     public InputStream getInputStream() {
         return inputStream;
@@ -108,30 +84,18 @@ public abstract class AbstractNodeManager extends AbstractSocketManager {
         commandTransmitter.queueCommandTransmission(appPacket);
     }
 
-    public void queueTransmission(String username, String message) {
-//        AppPacket newMessage = new AppPacket(ProtocolSignal.NEW_MESSAGE, managedSocket.getLocalSocketAddress(), username, message);
-//        queueTransmission(newMessage);
-    }
-
-
-    public void sendHeartbeatPacket() {
-        queueTransmission(getHeartbeatPacket());
-    }
-
-
     public boolean isSocketOpen() {
         return managedSocket != null && !managedSocket.isClosed();
     }
 
     public void closeSocket() {
         try {
+            if (managedSocket != null)
+                managedSocket.close();
             if (inputStream != null)
                 inputStream.close();
             if (outputStream != null)
                 outputStream.close();
-            if (managedSocket != null)
-                managedSocket.close();
-
         } catch (IOException e) {
             Flogger.atWarning().withCause(e).log("ER-ASM-0005");
         } catch (Exception e) {
@@ -167,12 +131,6 @@ public abstract class AbstractNodeManager extends AbstractSocketManager {
         }
     }
 
-    protected void initializeChildProcesses(@Nonnull AbstractCommandProcessor commandProcessor) {
-        this.commandProcessor   = commandProcessor;
-        this.heartbeatDaemon    = new HeartbeatDaemon(this);
-        this.commandReceiver    = new CommandReceiver(this);
-        this.commandTransmitter = new CommandTransmitter(this);
-    }
 
     protected void poolUpChildProcesses() {
         managerPool.submit(commandProcessor);

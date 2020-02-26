@@ -6,10 +6,9 @@ import javax.annotation.Nonnull;
 
 public class ClientCommandProcessor extends AbstractCommandProcessor {
 
-    ClientNodeManager clientManager;
+    private final ClientNodeManager clientManager;
 
     public ClientCommandProcessor(ClientNodeManager clientManager) {
-        super(clientManager);
         this.clientManager = clientManager;
     }
 
@@ -17,6 +16,8 @@ public class ClientCommandProcessor extends AbstractCommandProcessor {
     @Override
     protected void processCommand(@Nonnull AppPacket appPacket) {
         switch (appPacket.getSignal()) {
+            case UNAUTHORIZED_REQUEST:
+                clientManager.log("Unauthorized Request Sent");
             case AUTH_RESPONSE:
                 clientManager.setSessionID(appPacket.getAuth());
                 AuthResponsePacket authResponsePacket = (AuthResponsePacket) appPacket;

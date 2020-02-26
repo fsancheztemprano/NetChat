@@ -1,7 +1,6 @@
 package app.core;
 
 import app.core.packetmodel.AppPacket;
-import java.net.SocketException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -9,13 +8,7 @@ import tools.log.Flogger;
 
 public abstract class AbstractCommandProcessor extends Activable implements Runnable {
 
-    protected final BlockingQueue<AppPacket> toProcessCommandQueue;
-    protected final IActivable manager;
-
-    public AbstractCommandProcessor(IActivable manager) {
-        this.manager               = manager;
-        this.toProcessCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-    }
+    protected final BlockingQueue<AppPacket> toProcessCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
 
     @Override
     public void run() {
@@ -27,18 +20,18 @@ public abstract class AbstractCommandProcessor extends Activable implements Runn
                 if (appPacket != null) {
                     processCommand(appPacket);
                 }
-                if (!manager.isActive())
-                    throw new SocketException();
-            } catch (SocketException se) {
-                Flogger.atWarning().withCause(se).log("ER-CP-0001");       //(manager closed) TODO msg: connection lost
-                setActive(false);
-                Thread.currentThread().interrupt();
+//                if (!manager.isActive())
+//                    throw new SocketException();
+//            } catch (SocketException se) {
+//                Flogger.atWarning().withCause(se).log("ER-CP-0001");       //(manager closed) TODO msg: connection lost
+//                setActive(false);
             } catch (InterruptedException ie) {
                 Flogger.atWarning().withCause(ie).log("ER-CP-0002");
                 setActive(false);
             } catch (Exception e) {
                 Flogger.atWarning().withCause(e).log("ER-CP-0000");
                 setActive(false);
+                Thread.currentThread().interrupt();
             }
         }
     }

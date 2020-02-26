@@ -226,6 +226,7 @@ public class ClientControl {
 
         chatMenuPane.setLeft(null);
         chatMenuPane.setRight(null);
+        chatMenuPane.setCenter(tabPaneChats);
         tabLogin.setDisable(true);
         tabChat.setDisable(true);
 

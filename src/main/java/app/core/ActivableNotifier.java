@@ -6,7 +6,7 @@ import com.google.common.eventbus.EventBus;
 public abstract class ActivableNotifier extends Activable {
 
 
-    protected EventBus socketEventBus;
+    protected final EventBus socketEventBus = new EventBus(getSessionID() + "");
 
     public EventBus getSocketEventBus() {
         return socketEventBus;

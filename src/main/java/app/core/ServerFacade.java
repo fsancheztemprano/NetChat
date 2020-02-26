@@ -1,6 +1,8 @@
 package app.core;
 
 import app.chat.ChatService;
+import java.io.IOException;
+import tools.log.Flogger;
 
 public class ServerFacade {
 
@@ -31,13 +33,18 @@ public class ServerFacade {
 
     public void startServer() {
         stopServer();
-        serverManager = new ServerSocketManager();
-        serverManager.setHostname(hostname);
-        serverManager.setPort(port);
-        serverManager.register(ChatService.getInstance());
-        if (listener != null)
-            serverManager.register(listener);
-        new Thread(serverManager).start();
+        try {
+            serverManager = new ServerSocketManager();
+            serverManager.setHostname(hostname);
+            serverManager.setPort(port);
+            serverManager.register(ChatService.getInstance());
+            if (listener != null)
+                serverManager.register(listener);
+            new Thread(serverManager).start();
+        } catch (IOException e) {
+            Flogger.atWarning().withCause(e).log("ER-SF-0001");
+            stopServer();
+        }
     }
 
     public void stopServer() {

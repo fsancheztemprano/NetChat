@@ -13,7 +13,7 @@ import tools.log.Flogger;
 
 public class CommandTransmitter extends Activable implements Runnable {
 
-    private BlockingQueue<AppPacket> outboundCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+    private final BlockingQueue<AppPacket> outboundCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
 
     private final AbstractNodeManager socketManager;
     private final SocketAddress localSocketAddress;

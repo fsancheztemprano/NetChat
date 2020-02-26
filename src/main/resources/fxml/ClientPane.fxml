@@ -89,12 +89,12 @@
                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
               </rowConstraints>
               <children>
-                <Button fx:id="btnNavGroups" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnNavGroupsAction" text="Groups">
+                <Button fx:id="btnNavGroups" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnNavGroupsAction" text="Groups" GridPane.columnIndex="1">
                   <GridPane.margin>
                     <Insets />
                   </GridPane.margin>
                 </Button>
-                <Button fx:id="btnNavChats" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnNavChatsAction" text="Chats" GridPane.columnIndex="1">
+                <Button fx:id="btnNavChats" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnNavChatsAction" text="Chats">
                   <GridPane.margin>
                     <Insets />
                   </GridPane.margin>
@@ -105,17 +105,17 @@
                      </padding>
                   </GridPane>
                </top>
-               <left>
-                  <TabPane fx:id="tabPaneGroups" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
-                    <tabs>
-                      <Tab fx:id="tabGroupsList" text="Groups">
-                           <content>
-                              <BorderPane>
-                                <center>
-                                  <ListView fx:id="listViewGroups" prefHeight="200.0" prefWidth="200.0">
-                                    <BorderPane.margin>
-                                      <Insets left="6.0" right="6.0" top="6.0" />
-                                    </BorderPane.margin>
+          <right>
+            <TabPane fx:id="tabPaneGroups" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+              <tabs>
+                <Tab fx:id="tabGroupsList" text="Groups">
+                  <content>
+                    <BorderPane>
+                      <center>
+                        <ListView fx:id="listViewGroups" prefHeight="200.0" prefWidth="200.0">
+                          <BorderPane.margin>
+                            <Insets left="6.0" right="6.0" top="6.0" />
+                          </BorderPane.margin>
                                   </ListView>
                                 </center>
                                  <bottom>
@@ -130,23 +130,23 @@
                                      </padding>
                                    </HBox>
                                  </bottom>
-                              </BorderPane>
-                           </content>
-                        </Tab>
-                    </tabs>
-                  </TabPane>
-               </left>
-               <right>
-                  <TabPane fx:id="tabPaneChats" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
-                    <tabs>
-                      <Tab fx:id="tabUsersList" text="Users">
-                           <content>
-                              <BorderPane prefHeight="200.0" prefWidth="200.0">
-                                 <bottom>
-                                    <HBox alignment="CENTER_RIGHT" spacing="8.0" BorderPane.alignment="CENTER">
-                                       <children>
-                                         <Button fx:id="btnChatPM" mnemonicParsing="false" onAction="#btnChatPMAction" text="Send PM" />
-                                       </children>
+                    </BorderPane>
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+          </right>
+          <left>
+            <TabPane fx:id="tabPaneChats" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+              <tabs>
+                <Tab fx:id="tabUsersList" text="Users">
+                  <content>
+                    <BorderPane prefHeight="200.0" prefWidth="200.0">
+                      <bottom>
+                        <HBox alignment="CENTER_RIGHT" spacing="8.0" BorderPane.alignment="CENTER">
+                          <children>
+                            <Button fx:id="btnChatPM" mnemonicParsing="false" onAction="#btnChatPMAction" text="Send PM" />
+                          </children>
                                        <BorderPane.margin>
                                           <Insets />
                                        </BorderPane.margin>
@@ -162,11 +162,12 @@
                                     </BorderPane.margin>
                                   </ListView>
                                 </center>
-                              </BorderPane>
-                           </content></Tab>
-                    </tabs>
-                  </TabPane>
-               </right>
+                    </BorderPane>
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+          </left>
             </BorderPane>
          </content></Tab>
   </tabs>
