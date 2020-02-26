@@ -1,22 +1,19 @@
 package app.core;
 
 import app.core.packetmodel.AppPacket;
+import com.google.common.flogger.StackSize;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.SocketException;
-import java.util.concurrent.BlockingQueue;
 import tools.log.Flogger;
 
 public class CommandReceiver extends Activable implements Runnable {
 
-    private AbstractSocketManager socketManager;
-    public BlockingQueue<AppPacket> inboundCommandQueue;
+    private final AbstractNodeManager socketManager;
 
-
-    public CommandReceiver(AbstractSocketManager socketManager) {
-        this.socketManager       = socketManager;
-        this.inboundCommandQueue = socketManager.getInboundCommandQueue();
+    public CommandReceiver(AbstractNodeManager socketManager) {
+        this.socketManager = socketManager;
     }
 
     @Override
@@ -28,27 +25,22 @@ public class CommandReceiver extends Activable implements Runnable {
                 while (isActive()) {
                     try {
                         AppPacket appPacket = (AppPacket) objectInputStream.readObject();
-                        appPacket.setHandler(socketManager instanceof WorkerSocketManager
-                                             ? ((WorkerSocketManager) socketManager)
-                                             : null);
+                        appPacket.setHandler(socketManager);
                         socketManager.updateHeartbeatDaemonTime();                  //TODO migrate to event bus
                         socketManager.log("In: " + appPacket.toString());
-                        inboundCommandQueue.put(appPacket);
+                        socketManager.getCommandProcessor().queueCommandProcess(appPacket);
                     } catch (SocketException se) {
                         setActive(false);
-                        Flogger.atWarning().withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost, Event Bus?
+                        Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost, Event Bus?
                         Thread.currentThread().interrupt();
                     } catch (IOException ioe) {
                         setActive(false);
-                        Flogger.atWarning().withCause(ioe).log("ER-CR-0002");
+                        Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ioe).log("ER-CR-0002");
                     } catch (ClassNotFoundException cnfe) {
-                        Flogger.atWarning().withCause(cnfe).log("ER-CR-0003");
-                        setActive(false);
-                    } catch (InterruptedException ie) {
-                        Flogger.atWarning().withCause(ie).log("ER-CR-0004");
+                        Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(cnfe).log("ER-CR-0003");
                         setActive(false);
                     } catch (Exception e) {
-                        Flogger.atWarning().withCause(e).log("ER-CR-0000");
+                        Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(e).log("ER-CR-0000");
                         setActive(false);
                     }
                 }

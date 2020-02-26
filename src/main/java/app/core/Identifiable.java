@@ -9,6 +9,10 @@ public abstract class Identifiable {
 
     protected final AtomicLong ID = new AtomicLong(-1);
 
+    public Identifiable() {
+        setSessionID(generateTimeHashID());
+    }
+
     public long getSessionID() {
         return ID.get();
     }

@@ -11,7 +11,7 @@ public class ServerCommandProcessor extends AbstractCommandProcessor {
     private ServerSocketManager serverSocketManager;
 
     public ServerCommandProcessor(ServerSocketManager serverSocketManager) {
-        super(serverSocketManager, serverSocketManager.getServerCommandQueue());
+        super(serverSocketManager);
         this.serverSocketManager = serverSocketManager;
     }
 

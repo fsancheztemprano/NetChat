@@ -168,11 +168,13 @@ public class ClientControl {
 
     @FXML
     void btnNavChatsAction(ActionEvent event) {
+        chatMenuPane.setCenter(tabPaneChats);
 
     }
 
     @FXML
     void btnNavGroupsAction(ActionEvent event) {
+        chatMenuPane.setCenter(tabPaneGroups);
 
     }
 
@@ -238,13 +240,14 @@ public class ClientControl {
     @Subscribe
     public void authResponseReceived(AuthResponsePacket authResponsePacket) {
         if (authResponsePacket.getAuth() == -1) {
-            FxDialogs.showError("Auth Failed", "Auth Failed", "Auth Failed");
             Platform.runLater(() -> {
+                FxDialogs.showError("Auth Failed", "Auth Failed", "Auth Failed");
                 tabChat.setDisable(true);
             });
         } else {
             logOutput("Login Success");
             Platform.runLater(() -> {
+                FxDialogs.showError("Welcome", "Auth Success", "Login Correct");
                 tabChat.setDisable(false);
             });
         }

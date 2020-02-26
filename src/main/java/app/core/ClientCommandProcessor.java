@@ -6,10 +6,10 @@ import javax.annotation.Nonnull;
 
 public class ClientCommandProcessor extends AbstractCommandProcessor {
 
-    ClientSocketManager clientManager;
+    ClientNodeManager clientManager;
 
-    public ClientCommandProcessor(ClientSocketManager clientManager) {
-        super(clientManager, clientManager.getInboundCommandQueue());
+    public ClientCommandProcessor(ClientNodeManager clientManager) {
+        super(clientManager);
         this.clientManager = clientManager;
     }
 

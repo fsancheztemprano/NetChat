@@ -1,5 +1,6 @@
 package app.chat;
 
+import app.core.WorkerNodeManager;
 import app.core.packetmodel.AuthRemovePacket;
 import app.core.packetmodel.AuthRequestPacket;
 import com.google.common.eventbus.Subscribe;
@@ -27,10 +28,11 @@ public class ChatService {
         return instance;
     }
 
-    private ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login) TODO: move to Persistance layer
     private ConcurrentHashMap<Long, User> sessionMap = new ConcurrentHashMap<>();
 
 
+    @SuppressWarnings("UnstableApiUsage")
     @Subscribe
     public void validateLoginRequest(AuthRequestPacket loginRequest) {
         boolean validated = false;
@@ -50,7 +52,7 @@ public class ChatService {
             validated = true;
             sessionMap.put(loginRequest.getAuth(), existingUser);
         }
-        loginRequest.getHandler().sendAuthApproval(validated);
+        ((WorkerNodeManager) loginRequest.getHandler()).sendAuthApproval(validated);
     }
 
     @Subscribe

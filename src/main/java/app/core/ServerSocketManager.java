@@ -3,6 +3,7 @@ package app.core;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 import com.google.common.eventbus.EventBus;
+import com.google.common.flogger.StackSize;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -11,12 +12,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import tools.log.Flogger;
 
-public class ServerSocketManager extends ActivableNotifier implements Runnable {
+public class ServerSocketManager extends AbstractSocketManager implements Runnable {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
@@ -25,24 +24,19 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
     private InetSocketAddress inetSocketAddress;
 
 
-    ConcurrentHashMap<Long, WorkerSocketManager> workerList;
+    private final ConcurrentHashMap<Long, WorkerNodeManager> workerList;
 
-
-    private BlockingQueue<AppPacket> serverCommandQueue;
-    private ServerCommandProcessor serverCommandProcessor;
 
     public ServerSocketManager() {
-        socketEventBus = new EventBus("ServerEventBus");
-
+        socketEventBus   = new EventBus("ServerEventBus");
+        workerList       = new ConcurrentHashMap<>();
+        commandProcessor = new ServerCommandProcessor(this);
     }
 
     @Override
     public void run() {
         try {
-            workerList             = new ConcurrentHashMap<>();
-            serverCommandQueue     = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-            serverCommandProcessor = new ServerCommandProcessor(this);
-
+            new Thread(commandProcessor).start();
             log("Creando socket servidor. Clientes Max: " + Globals.MAX_ACTIVE_CLIENTS);
             serverSocket      = new ServerSocket();
             inetSocketAddress = (hostname.length() > 6 && InetAddress.getByName(hostname).isReachable(100))
@@ -51,14 +45,13 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
 
             log("Realizando el bind: " + inetSocketAddress.getAddress() + ":" + inetSocketAddress.getPort());
             serverSocket.bind(inetSocketAddress);
-            new Thread(serverCommandProcessor).start();
             setActive(true);
             log("Aceptando conexiones: " + serverSocket.getLocalSocketAddress().toString());
             while (isActive()) {
                 Socket clientSocket = serverSocket.accept();
                 clientSocket.setKeepAlive(true);
                 log("Conexion entrante: " + clientSocket.getRemoteSocketAddress());
-                WorkerSocketManager workerSocketManager = new WorkerSocketManager(this, clientSocket);
+                WorkerNodeManager workerSocketManager = new WorkerNodeManager(this, clientSocket);
                 if (workerList.size() < Globals.MAX_ACTIVE_CLIENTS) {
                     workerList.put(workerSocketManager.getSessionID(), workerSocketManager);
                     log("Conexion aceptada: " + clientSocket.getRemoteSocketAddress());
@@ -80,7 +73,7 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
         } catch (IOException ioe) {
             log("Deteniendo Servidor");
         } catch (Exception e) {
-            Flogger.atWarning().withCause(e).log("ER-SSM-0000");
+            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(e).log("ER-SSM-0000");
         } finally {
             serverShutdown();
         }
@@ -91,13 +84,11 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
             try {
                 closeServerSocket();
                 stopAllClients();
-                stopCommandProcessor();
+                disableCommandProcessor();
 
-                serverSocket           = null;
-                inetSocketAddress      = null;
-                workerList             = null;
-                serverCommandQueue     = null;
-                serverCommandProcessor = null;
+                serverSocket      = null;
+                inetSocketAddress = null;
+                commandProcessor  = null;
             } catch (Exception e) {
                 Flogger.atWarning().withCause(e).log("ER-SSM-0001");
             } finally {
@@ -107,15 +98,12 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
         }
     }
 
-    public BlockingQueue<AppPacket> getServerCommandQueue() {
-        return serverCommandQueue;
-    }
 
-    public ConcurrentHashMap<Long, WorkerSocketManager> getWorkerList() {
+    public ConcurrentHashMap<Long, WorkerNodeManager> getWorkerList() {
         return workerList;
     }
 
-    public void removeWorker(WorkerSocketManager workerSocketManager) {
+    public void removeWorker(WorkerNodeManager workerSocketManager) {
         log("Conexion finalizada: " + workerSocketManager.managedSocket.getRemoteSocketAddress());
         workerList.remove(workerSocketManager.getSessionID());
         socketEventBus.post(new Integer(workerList.size()));
@@ -149,14 +137,10 @@ public class ServerSocketManager extends ActivableNotifier implements Runnable {
     }
 
     private void stopAllClients() {
-        workerList.forEachValue(1, WorkerSocketManager::stopSocketManager);
+        workerList.forEachValue(1, WorkerNodeManager::stopSocketManager);
         workerList.clear();
     }
 
-    private void stopCommandProcessor() {
-        if (serverCommandProcessor != null)
-            serverCommandProcessor.setActive(false);
-    }
 
 
     public void queueServerBroadcast(String message) {

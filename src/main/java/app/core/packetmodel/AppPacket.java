@@ -1,6 +1,6 @@
 package app.core.packetmodel;
 
-import app.core.WorkerSocketManager;
+import app.core.AbstractNodeManager;
 import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.net.SocketAddress;
@@ -17,7 +17,7 @@ public class AppPacket implements Serializable {
     private String destiny;
     private String message;
 
-    private transient WorkerSocketManager handler;
+    private transient AbstractNodeManager handler;
 
     public AppPacket(ProtocolSignal signal) {
         this.signal = signal;
@@ -79,11 +79,11 @@ public class AppPacket implements Serializable {
         this.message = message;
     }
 
-    public WorkerSocketManager getHandler() {
+    public AbstractNodeManager getHandler() {
         return handler;
     }
 
-    public void setHandler(WorkerSocketManager handler) {
+    public void setHandler(AbstractNodeManager handler) {
         this.handler = handler;
     }
 

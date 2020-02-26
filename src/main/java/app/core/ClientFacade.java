@@ -18,7 +18,7 @@ public class ClientFacade {
         return instance;
     }
 
-    private ClientSocketManager clientSocketManager = null;
+    private ClientNodeManager clientSocketManager = null;
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
     private Object listener = null;
@@ -27,7 +27,7 @@ public class ClientFacade {
     public void connect() {
         if (clientSocketManager != null)
             disconnect();
-        clientSocketManager = new ClientSocketManager();
+        clientSocketManager = new ClientNodeManager();
         clientSocketManager.setHostname(hostname);
         clientSocketManager.setPort(port);
         if (listener != null)
@@ -37,7 +37,7 @@ public class ClientFacade {
 
     public void disconnect() {
         if (clientSocketManager != null) {
-            ClientSocketManager c = clientSocketManager;
+            ClientNodeManager c = clientSocketManager;
             new Thread(() -> {
                 c.stopSocketManager();
                 if (listener != null)

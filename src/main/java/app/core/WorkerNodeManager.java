@@ -3,46 +3,39 @@ package app.core;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 import app.core.packetmodel.AuthResponsePacket;
-import java.io.IOException;
+import com.google.common.flogger.StackSize;
 import java.net.Socket;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import javax.annotation.Nonnull;
 import tools.log.Flogger;
 
-public class WorkerSocketManager extends AbstractSocketManager {
+public class WorkerNodeManager extends AbstractNodeManager {
 
-    private ConcurrentHashMap<Long, WorkerSocketManager> workerList;
     private ServerSocketManager serverSocketManager;
-    private long serverID;
+    private final long serverID;
 
 
-    public WorkerSocketManager(ServerSocketManager serverSocketManager, Socket managedSocket) {
+    public WorkerNodeManager(ServerSocketManager serverSocketManager, Socket managedSocket) {
         this.serverSocketManager = serverSocketManager;
         this.managedSocket       = managedSocket;
-        this.inboundCommandQueue = serverSocketManager.getServerCommandQueue();
-        this.workerList          = serverSocketManager.getWorkerList();
-        socketEventBus           = serverSocketManager.getSocketEventBus();
-        setSessionID(generateTimeHashID());
-        serverID = serverSocketManager.getSessionID();
+        this.commandProcessor    = new WorkerCommandProcessor(this);
+        this.socketEventBus      = serverSocketManager.getSocketEventBus();
+        this.serverID            = serverSocketManager.getSessionID();
+        managerPool              = Executors.newFixedThreadPool(4);
     }
 
     @Override
     public synchronized void startSocketManager() {
         try {
-            setStreams();
             setActive(true);
-            outboundCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-            managerPool          = Executors.newFixedThreadPool(3);
-
-            initializeChildProcesses();
+            setStreams();
+            initializeChildProcesses(commandProcessor);
             poolUpChildProcesses();
-        } catch (IOException e) {
-            Flogger.atWarning().withCause(e).log("ER-WSM-0001");
-            stopSocketManager();
+//        } catch (IOException e) {
+//            Flogger.atWarning().withCause(e).log("ER-WSM-0001");
         } catch (Exception e) {
-            Flogger.atWarning().withCause(e).log("ER-WSM-0000");
+            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(e).log("ER-WSM-0000");
+            stopSocketManager();
         }
     }
 
@@ -51,7 +44,7 @@ public class WorkerSocketManager extends AbstractSocketManager {
         if (isActive()) {
             try {
                 serverSocketManager.removeWorker(this);
-                deactivateChildProcesses();
+                disableChildProcesses();
                 closeSocket();
                 closePool();
             } catch (Exception e) {
@@ -73,10 +66,16 @@ public class WorkerSocketManager extends AbstractSocketManager {
         queueTransmission(authResponsePacket);
     }
 
+    //only AUTH_RESPONSE delivers sessionID, others return serverID
     @Override
     public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
-        if (appPacket.getSignal() != ProtocolSignal.AUTH_RESPONSE)//only AUTH_RESPONSE delivers sessionID, others return serverID
-            appPacket.setAuth(getSessionID());
+        if (appPacket.getSignal() != ProtocolSignal.AUTH_RESPONSE) {
+            appPacket.setAuth(serverID);
+        }
         super.queueTransmission(appPacket);
+    }
+
+    public ServerSocketManager getServerSocketManager() {
+        return serverSocketManager;
     }
 }

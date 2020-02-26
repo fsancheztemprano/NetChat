@@ -4,27 +4,26 @@ import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AuthRemovePacket;
 import app.core.packetmodel.AuthRequestPacket;
 import com.google.common.eventbus.EventBus;
+import com.google.common.flogger.StackSize;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import java.io.IOException;
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import javax.annotation.Nonnull;
 import tools.log.Flogger;
 
-public class ClientSocketManager extends AbstractSocketManager {
+public class ClientNodeManager extends AbstractNodeManager {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
 
-    private ClientCommandProcessor clientCommandProcessor;
-
-    public ClientSocketManager() {
-        socketEventBus = new EventBus("ClientEventBus");
+    @SuppressWarnings("UnstableApiUsage")
+    public ClientNodeManager() {
+        socketEventBus   = new EventBus("ClientEventBus");
+        commandProcessor = new ClientCommandProcessor(this);
+        managerPool      = Executors.newFixedThreadPool(4);
     }
 
     @Override
@@ -34,32 +33,26 @@ public class ClientSocketManager extends AbstractSocketManager {
         log("Conectando: " + addr.getAddress());
         try {
             managedSocket.connect(addr, Globals.CLIENT_CONNECT_TIMEOUT);
-            setStreams();
             setActive(true);
-            log("Conectado: " + addr.getAddress());
-
-            inboundCommandQueue  = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-            outboundCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
-            managerPool          = Executors.newFixedThreadPool(4);
-
-            initializeChildProcesses();
+            setStreams();
+            initializeChildProcesses(commandProcessor);
             poolUpChildProcesses();
-        } catch (ConnectException ce) {
-            Flogger.atWarning().withCause(ce).log("ER-CSM-0002");
+            log("Conectado: " + addr.getAddress());
+//        } catch (ConnectException ce) {
+//            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ce).log("ER-CSM-0001");
+//        } catch (IOException ce) {
+//            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ce).log("ER-CSM-0001");
+        } catch (Exception ce) {
+            Flogger.atWarning().withStackTrace(StackSize.FULL).withCause(ce).log("ER-CSM-0000");
             stopSocketManager();
-        } catch (IOException ioe) {
-            Flogger.atWarning().withCause(ioe).log("ER-CSM-0001");
-        } catch (Exception e) {
-            Flogger.atWarning().withCause(e).log("ER-CSM-0000");
         }
-
     }
 
     @Override
     public void stopSocketManager() {
         if (isActive() || isSocketOpen()) {
             try {
-                deactivateChildProcesses();
+                disableChildProcesses();
                 closeSocket();
                 closePool();
 
@@ -69,8 +62,6 @@ public class ClientSocketManager extends AbstractSocketManager {
                 heartbeatDaemon      = null;
                 commandReceiver      = null;
                 commandTransmitter   = null;
-                inboundCommandQueue  = null;
-                outboundCommandQueue = null;
                 inputStream          = null;
                 outputStream         = null;
             } catch (Exception e) {
@@ -83,25 +74,7 @@ public class ClientSocketManager extends AbstractSocketManager {
         }
     }
 
-    @Override
-    protected void deactivateChildProcesses() {
-        super.deactivateChildProcesses();
-        if (clientCommandProcessor != null)
-            clientCommandProcessor.setActive(false);
-    }
 
-
-    @Override
-    protected void initializeChildProcesses() {
-        clientCommandProcessor = new ClientCommandProcessor(this);
-        super.initializeChildProcesses();
-    }
-
-    @Override
-    protected void poolUpChildProcesses() {
-        managerPool.submit(clientCommandProcessor);
-        super.poolUpChildProcesses();
-    }
 
     public void setHostname(String hostname) {
         this.hostname = hostname;

@@ -12,10 +12,10 @@ public interface Globals {
 
     int CLIENT_CONNECT_TIMEOUT = 5000;//ms
 
-    long HEARTBEAT_INTERVAL = 3000;//MS
-    int HEARTBEAT_DELAY = 30;//in seconds
+    long HEARTBEAT_SLEEP_INTERVAL = 2000;//MS
+    int HEARTBEAT_DELAY = 10;//in seconds
 
     long TRANSMITTER_THREAD_TIMEOUT = 1;//seconds
     long PROCESSORS_THREAD_TIMEOUT = 1;//seconds
-    int HEARTBEAT_FIRST = 2;//seconds
+    int HEARTBEAT_FIRST = 1;//seconds
 }
