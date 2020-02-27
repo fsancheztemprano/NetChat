@@ -17,6 +17,7 @@ public class ClientNodeManager extends AbstractNodeManager {
         super(new Socket());
         commandProcessor = new ClientCommandProcessor(this);
     }
+
     @Override
     public synchronized void startSocketManager() {
         InetSocketAddress addr = new InetSocketAddress(hostname, port);
@@ -53,7 +54,6 @@ public class ClientNodeManager extends AbstractNodeManager {
             }
         }
     }
-
 
 
     public void setHostname(String hostname) {

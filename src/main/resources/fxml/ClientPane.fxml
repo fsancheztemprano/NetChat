@@ -56,26 +56,27 @@
       </content>
     </Tab>
     <Tab fx:id="tabLogin" closable="false" text="Login">
-         <content>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
-               <children>
-                 <Label text="Login">
-                   <font>
-                     <Font size="24.0" />
-                   </font>
-                 </Label>
-                 <Label text="Username" />
-                 <TextField fx:id="fieldLoginUsername" onAction="#btnLoginAction" text="admin" />
-                 <Label text="Password" />
-                 <PasswordField fx:id="fieldLoginPassword" onAction="#btnLoginAction" text="admin" />
-                 <Button fx:id="btnLogin" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnLoginAction" text="Log In" VBox.vgrow="ALWAYS" />
-                 <Button fx:id="btnLogOut" contentDisplay="RIGHT" layoutX="20.0" layoutY="189.0" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnLogOutAction" text="Log Out" />
-               </children>
-               <padding>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-               </padding>
-            </VBox>
-         </content></Tab>
+      <content>
+        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
+          <children>
+            <Label text="Login">
+              <font>
+                <Font size="24.0" />
+              </font>
+            </Label>
+            <Label text="Username" />
+            <TextField fx:id="fieldLoginUsername" onAction="#btnLoginAction" text="admin" />
+            <Label text="Password" />
+            <PasswordField fx:id="fieldLoginPassword" onAction="#btnLoginAction" text="admin" />
+            <Button fx:id="btnLogin" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnLoginAction" text="Log In" VBox.vgrow="ALWAYS" />
+            <Button fx:id="btnLogOut" contentDisplay="RIGHT" layoutX="20.0" layoutY="189.0" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnLogOutAction" text="Log Out" />
+          </children>
+          <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+          </padding>
+        </VBox>
+      </content>
+    </Tab>
     <Tab fx:id="tabChat" closable="false" text="Chat">
       <content>
         <BorderPane fx:id="chatMenuPane">
@@ -99,12 +100,12 @@
                     <Insets />
                   </GridPane.margin>
                 </Button>
-                     </children>
-                     <padding>
-                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                     </padding>
-                  </GridPane>
-               </top>
+              </children>
+              <padding>
+                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+              </padding>
+            </GridPane>
+          </top>
           <right>
             <TabPane fx:id="tabPaneGroups" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
               <tabs>
@@ -116,20 +117,20 @@
                           <BorderPane.margin>
                             <Insets left="6.0" right="6.0" top="6.0" />
                           </BorderPane.margin>
-                                  </ListView>
-                                </center>
-                                 <bottom>
-                                   <HBox alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="8.0" BorderPane.alignment="CENTER_RIGHT">
-                                     <children>
-                                       <Button fx:id="btnGroupsRemove" layoutX="110.0" layoutY="18.0" mnemonicParsing="false" onAction="#btnGroupsRemoveAction" text="Remove" />
-                                       <Button fx:id="btnGroupsNew" mnemonicParsing="false" onAction="#btnGroupsNewAction" text="New" />
-                                       <Button fx:id="btnGroupsEnter" layoutX="158.0" layoutY="18.0" mnemonicParsing="false" onAction="#btnGroupsEnterAction" text="Enter" />
-                                     </children>
-                                     <padding>
-                                       <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                                     </padding>
-                                   </HBox>
-                                 </bottom>
+                        </ListView>
+                      </center>
+                      <bottom>
+                        <HBox alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="8.0" BorderPane.alignment="CENTER_RIGHT">
+                          <children>
+                            <Button fx:id="btnGroupsRemove" layoutX="110.0" layoutY="18.0" mnemonicParsing="false" onAction="#btnGroupsRemoveAction" text="Remove" />
+                            <Button fx:id="btnGroupsNew" mnemonicParsing="false" onAction="#btnGroupsNewAction" text="New" />
+                            <Button fx:id="btnGroupsEnter" layoutX="158.0" layoutY="18.0" mnemonicParsing="false" onAction="#btnGroupsEnterAction" text="Enter" />
+                          </children>
+                          <padding>
+                            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                          </padding>
+                        </HBox>
+                      </bottom>
                     </BorderPane>
                   </content>
                 </Tab>
@@ -147,28 +148,29 @@
                           <children>
                             <Button fx:id="btnChatPM" mnemonicParsing="false" onAction="#btnChatPMAction" text="Send PM" />
                           </children>
-                                       <BorderPane.margin>
-                                          <Insets />
-                                       </BorderPane.margin>
-                                       <padding>
-                                          <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                                       </padding>
-                                    </HBox>
-                                 </bottom>
-                                <center>
-                                  <ListView fx:id="listViewUsers" prefHeight="200.0" prefWidth="200.0">
-                                    <BorderPane.margin>
-                                      <Insets left="6.0" right="6.0" top="6.0" />
-                                    </BorderPane.margin>
-                                  </ListView>
-                                </center>
+                          <BorderPane.margin>
+                            <Insets />
+                          </BorderPane.margin>
+                          <padding>
+                            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                          </padding>
+                        </HBox>
+                      </bottom>
+                      <center>
+                        <ListView fx:id="listViewUsers" prefHeight="200.0" prefWidth="200.0">
+                          <BorderPane.margin>
+                            <Insets left="6.0" right="6.0" top="6.0" />
+                          </BorderPane.margin>
+                        </ListView>
+                      </center>
                     </BorderPane>
                   </content>
                 </Tab>
               </tabs>
             </TabPane>
           </left>
-            </BorderPane>
-         </content></Tab>
+        </BorderPane>
+      </content>
+    </Tab>
   </tabs>
 </TabPane>
