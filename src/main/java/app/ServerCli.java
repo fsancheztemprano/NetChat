@@ -1,3 +1,5 @@
+package app;
+
 import app.core.ServerFacade;
 import java.util.Scanner;
 

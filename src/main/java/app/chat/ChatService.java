@@ -1,10 +1,15 @@
 package app.chat;
 
+import app.core.ServerSocketManager;
 import app.core.WorkerNodeManager;
+import app.core.packetmodel.AppPacket;
+import app.core.packetmodel.AppPacket.ProtocolSignal;
 import app.core.packetmodel.AuthRemoveEvent;
 import app.core.packetmodel.AuthRequestEvent;
 import com.google.common.eventbus.Subscribe;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 import tools.HashTools;
 
 public class ChatService {
@@ -26,8 +31,17 @@ public class ChatService {
         return instance;
     }
 
-    private ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login) TODO: move to Persistence layer
-    private ConcurrentHashMap<Long, User> sessionMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login) TODO: move to Persistence layer
+    private final ConcurrentHashMap<Long, User> sessionMap = new ConcurrentHashMap<>();
+    private ServerSocketManager chatServer = null;
+
+    public ServerSocketManager getChatServer() {
+        return chatServer;
+    }
+
+    public void setChatServer(ServerSocketManager chatServer) {
+        this.chatServer = chatServer;
+    }
 
     @Subscribe
     public void validateLoginRequest(AuthRequestEvent loginRequest) {
@@ -39,15 +53,25 @@ public class ChatService {
 
         if (existingUser == null) {                                             // new user
             validated = true;
-            sessionMap.put(loginRequest.getAuth(), receivedUserDetails);
+            sessionMap.put(loginRequest.getHandler().getSessionID(), receivedUserDetails);
         } else if (existingUser.getPassword().equals(reHashedPass)) {           // receivedUser isValid
             validated = true;
-            sessionMap.put(loginRequest.getAuth(), existingUser);
+            sessionMap.put(loginRequest.getHandler().getSessionID(), existingUser);
         }
+        sessionMap.forEach((k, v) -> System.out.println(k + " " + v));
         ((WorkerNodeManager) loginRequest.getHandler()).sendAuthApproval(validated);
-//        if(validated){
-//            sendListOfUsersLoggedIn(loginRequest.getUsername());
-//        }
+
+        if (validated) {
+            broadcastUserList();
+        }
+    }
+
+    private void broadcastUserList() {
+        AppPacket appPacket = new AppPacket(ProtocolSignal.BROADCAST_USER_LIST);
+        appPacket.setUsername("SERVER");
+        Stream<String> usernameStream = sessionMap.values().stream().map(User::getUsername).distinct();
+        appPacket.setList(usernameStream.toArray(String[]::new));
+        chatServer.transmitToListOfIds(new HashSet<>(sessionMap.keySet()), appPacket);
     }
 
     @Subscribe

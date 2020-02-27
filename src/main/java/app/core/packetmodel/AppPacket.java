@@ -11,11 +11,14 @@ public class AppPacket implements Serializable {
     private ProtocolSignal signal;
     private SocketAddress originSocketAddress;
     private long auth;
+
     private String username;
     private String password;
 
     private String destiny;
     private String message;
+
+    private String[] list;
 
     private transient AbstractNodeManager handler;
 
@@ -87,6 +90,14 @@ public class AppPacket implements Serializable {
         this.handler = handler;
     }
 
+    public String[] getList() {
+        return list;
+    }
+
+    public void setList(String[] list) {
+        this.list = list;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -97,6 +108,7 @@ public class AppPacket implements Serializable {
                           .add("password", password)
                           .add("destiny", destiny)
                           .add("message", message)
+                          .add("list", list)
                           .add("handler", handler)
                           .toString();
     }
@@ -114,13 +126,12 @@ public class AppPacket implements Serializable {
                Objects.equals(username, appPacket.username) &&
                Objects.equals(password, appPacket.password) &&
                Objects.equals(destiny, appPacket.destiny) &&
-               Objects.equals(message, appPacket.message) &&
-               Objects.equals(handler, appPacket.handler);
+               Objects.equals(message, appPacket.message);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(signal, originSocketAddress, auth, username, password, destiny, message, handler);
+        return Objects.hash(signal, originSocketAddress, auth, username, password, destiny, message);
     }
 
     public enum ProtocolSignal implements Serializable {
@@ -140,6 +151,8 @@ public class AppPacket implements Serializable {
 
 
         NEW_PRIVATE_MSG,
-        NEW_GROUP_MSG
+        NEW_GROUP_MSG,
+
+        BROADCAST_USER_LIST
     }
 }

@@ -77,9 +77,9 @@ public class ClientNodeManager extends AbstractNodeManager {
     }
 
     @Override
-    public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
+    public synchronized boolean queueTransmission(@Nonnull AppPacket appPacket) {
         appPacket.setAuth(getSessionID());
-        super.queueTransmission(appPacket);
+        return super.queueTransmission(appPacket);
     }
 
     public void sendLogOutAction() {

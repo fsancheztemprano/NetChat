@@ -37,7 +37,6 @@ public class ServerFacade {
             serverManager = new ServerSocketManager();
             serverManager.setHostname(hostname);
             serverManager.setPort(port);
-            serverManager.register(ChatService.getInstance());
             if (listener != null)
                 serverManager.register(listener);
             new Thread(serverManager).start();

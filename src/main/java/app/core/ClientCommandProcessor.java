@@ -1,6 +1,7 @@
 package app.core;
 
 import app.core.events.ClientAuthResponseEvent;
+import app.core.events.ClientUserListEvent;
 import app.core.packetmodel.AppPacket;
 import javax.annotation.Nonnull;
 
@@ -22,6 +23,8 @@ public class ClientCommandProcessor extends AbstractCommandProcessor {
                 clientManager.setSessionID(appPacket.getAuth());
                 clientManager.getSocketEventBus().post(new ClientAuthResponseEvent(appPacket.getAuth()));
                 break;
+            case BROADCAST_USER_LIST:
+                clientManager.getSocketEventBus().post(new ClientUserListEvent(appPacket.getList()));
         }
     }
 }

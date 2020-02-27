@@ -2,11 +2,16 @@ package app.ui;
 
 import app.core.ClientFacade;
 import app.core.events.ClientAuthResponseEvent;
+import app.core.events.ClientUserListEvent;
 import app.core.events.SocketStatusEvent;
 import com.google.common.eventbus.Subscribe;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener.Change;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -91,7 +96,7 @@ public class ClientControl {
     private Tab tabGroupsList;
 
     @FXML
-    private ListView<?> listViewGroups;
+    private ListView<String> listViewGroups;
 
     @FXML
     private Button btnGroupsRemove;
@@ -112,7 +117,9 @@ public class ClientControl {
     private Button btnChatPM;
 
     @FXML
-    private ListView<?> listViewChats;
+    private ListView<String> listViewUsers;
+
+    private final ObservableSet<String> usersObservableSet = FXCollections.observableSet();
 
     @FXML
     void btnChatPMAction(ActionEvent event) {
@@ -188,7 +195,7 @@ public class ClientControl {
     private void cleanUpChatPane() {
         Platform.runLater(() -> {
             tabChat.setDisable(true);
-            listViewChats.getItems().clear();
+            listViewUsers.getItems().clear();
             listViewGroups.getItems().clear();
             tabPaneChats.getTabs().remove(1, tabPaneChats.getTabs().size());
             tabPaneGroups.getTabs().remove(1, tabPaneGroups.getTabs().size());
@@ -223,13 +230,22 @@ public class ClientControl {
         assert tabPaneChats != null : "fx:id=\"tabPaneChats\" was not injected: check your FXML file 'ClientPane.fxml'.";
         assert tabUsersList != null : "fx:id=\"tabUsersList\" was not injected: check your FXML file 'ClientPane.fxml'.";
         assert btnChatPM != null : "fx:id=\"btnChatPM\" was not injected: check your FXML file 'ClientPane.fxml'.";
-        assert listViewChats != null : "fx:id=\"listViewChats\" was not injected: check your FXML file 'ClientPane.fxml'.";
+        assert listViewUsers != null : "fx:id=\"listViewChats\" was not injected: check your FXML file 'ClientPane.fxml'.";
 
         chatMenuPane.setLeft(null);
         chatMenuPane.setRight(null);
         chatMenuPane.setCenter(tabPaneChats);
         tabLogin.setDisable(true);
         tabChat.setDisable(true);
+
+        usersObservableSet.addListener((Change<? extends String> c) -> {
+            if (c.wasAdded()) {
+                listViewUsers.getItems().add(c.getElementAdded());
+            }
+            if (c.wasRemoved()) {
+                listViewUsers.getItems().remove(c.getElementRemoved());
+            }
+        });
 
         ClientFacade.inst().setListener(this);
     }
@@ -274,5 +290,10 @@ public class ClientControl {
                 tabPane.getSelectionModel().select(tabConnect);
             });
         }
+    }
+
+    @Subscribe
+    public void userListReceived(ClientUserListEvent userListEvent) {
+        usersObservableSet.addAll(Arrays.asList(userListEvent.getUserList()));
     }
 }

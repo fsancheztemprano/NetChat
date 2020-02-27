@@ -1,8 +1,8 @@
 package app.core;
 
+import app.chat.ChatService;
 import app.core.events.ServerActiveClientsEvent;
-import app.core.events.WorkerSessionEndEvent;
-import app.core.events.WorkerSessionStartEvent;
+import app.core.events.WorkerStatusEvent;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 import com.google.common.eventbus.Subscribe;
@@ -14,6 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import tools.log.Flogger;
 
@@ -34,6 +35,8 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
         serverSocket     = new ServerSocket();
         workerList       = new ConcurrentHashMap<>();
         commandProcessor = new ServerCommandProcessor(this);
+        register(ChatService.getInstance());
+        ChatService.getInstance().setChatServer(this);
     }
 
     @Override
@@ -90,6 +93,7 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
                 Flogger.atWarning().withCause(e).log("ER-SSM-0001");
             } finally {
                 setActive(false);
+                ChatService.getInstance().setChatServer(null);
                 Thread.currentThread().interrupt();
             }
         }
@@ -103,6 +107,17 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
     public void transmitToAllClients(AppPacket appPacket) {
         workerList.forEachValue(1, workerSocketManager -> workerSocketManager.queueTransmission(appPacket));
     }
+
+    public void transmitToListOfIds(final Set<Long> ids, AppPacket appPacket) {
+        ids.forEach(id -> {
+            new Thread(() -> {
+                WorkerNodeManager worker = workerList.get(id);
+                if (worker != null)
+                    worker.queueTransmission(appPacket);
+            }).start();
+        });
+    }
+
 
     public boolean isServerSocketBound() {
         return serverSocket != null && serverSocket.isBound();
@@ -151,17 +166,15 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
 
     //Subscribe methods listening to workers
     @Subscribe
-    public void sessionStarted(WorkerSessionStartEvent event) {
-        workerList.put(event.getEmitter().getSessionID(), event.getEmitter());
-        socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
-    }
-
-    @Subscribe
-    public void sessionEnded(WorkerSessionEndEvent event) {
-        event.getEmitter().unregister(this);
-        workerList.remove(event.getEmitter().getSessionID());
-        socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
-
+    public void workerStatusChange(WorkerStatusEvent worker) {
+        if (worker.isActive()) {
+            workerList.put(worker.getEmitter().getSessionID(), worker.getEmitter());
+            socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
+        } else {
+            worker.getEmitter().unregister(this);
+            workerList.remove(worker.getEmitter().getSessionID());
+            socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
+        }
     }
 
     @Subscribe

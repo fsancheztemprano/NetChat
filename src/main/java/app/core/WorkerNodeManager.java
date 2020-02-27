@@ -1,7 +1,6 @@
 package app.core;
 
-import app.core.events.WorkerSessionEndEvent;
-import app.core.events.WorkerSessionStartEvent;
+import app.core.events.WorkerStatusEvent;
 import app.core.packetmodel.AppPacket;
 import app.core.packetmodel.AppPacket.ProtocolSignal;
 import java.net.Socket;
@@ -53,7 +52,7 @@ public class WorkerNodeManager extends AbstractNodeManager {
     @Override
     public void setActive(boolean active) {
         this.active.set(active);
-        socketEventBus.post(active ? new WorkerSessionStartEvent(this) : new WorkerSessionEndEvent(this));
+        socketEventBus.post(new WorkerStatusEvent(this, active));
     }
 
     public void sendAuthApproval(boolean approved) {
@@ -64,11 +63,11 @@ public class WorkerNodeManager extends AbstractNodeManager {
 
     //only AUTH_RESPONSE delivers sessionID, others return serverID
     @Override
-    public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
+    public synchronized boolean queueTransmission(@Nonnull AppPacket appPacket) {
         if (appPacket.getSignal() != ProtocolSignal.AUTH_RESPONSE) {
             appPacket.setAuth(serverID);
         }
-        super.queueTransmission(appPacket);
+        return super.queueTransmission(appPacket);
     }
 
     public AbstractCommandProcessor getServerCommandProcessor() {

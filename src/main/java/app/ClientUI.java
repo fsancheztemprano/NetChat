@@ -1,12 +1,14 @@
+package app;
+
 import java.io.IOException;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.layout.Pane;
+import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 import tools.fx.FxApplication;
 import tools.fx.FxDialogs;
 
-public class MainUI extends FxApplication {
+public class ClientUI extends FxApplication {
 
     public static void main(String[] args) {
         launch(args);
@@ -23,7 +25,7 @@ public class MainUI extends FxApplication {
 //        mainStage.setMinWidth(600);
 //        mainStage.setMinHeight(400);
         try {
-            Pane root = FXMLLoader.load(getClass().getResource("/fxml/LauncherPane.fxml"));
+            TabPane root = FXMLLoader.load(getClass().getResource("/fxml/ClientPane.fxml"));
             setPaneWithNewScene(root);
             mainStage.show();
         } catch (IOException e) {

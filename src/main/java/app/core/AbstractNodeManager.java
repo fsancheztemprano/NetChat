@@ -80,8 +80,8 @@ public abstract class AbstractNodeManager extends AbstractSocketManager {
         setOutputStream();
     }
 
-    public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
-        commandTransmitter.queueCommandTransmission(appPacket);
+    public synchronized boolean queueTransmission(@Nonnull AppPacket appPacket) {
+        return commandTransmitter.queueCommandTransmission(appPacket);
     }
 
     public boolean isSocketOpen() {
