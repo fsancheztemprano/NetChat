@@ -1,5 +1,6 @@
 package app.core;
 
+import app.Globals;
 import java.net.SocketException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;

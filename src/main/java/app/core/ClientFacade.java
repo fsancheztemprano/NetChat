@@ -1,5 +1,7 @@
 package app.core;
 
+import app.Globals;
+
 public class ClientFacade {
 
     private static ClientFacade instance;

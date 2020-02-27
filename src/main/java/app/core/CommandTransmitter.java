@@ -1,5 +1,6 @@
 package app.core;
 
+import app.Globals;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;

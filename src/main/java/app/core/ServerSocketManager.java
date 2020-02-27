@@ -1,5 +1,6 @@
 package app.core;
 
+import app.Globals;
 import app.chat.ChatService;
 import app.core.AppPacket.ProtocolSignal;
 import app.core.events.ServerActiveClientsEvent;

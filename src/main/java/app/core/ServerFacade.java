@@ -1,5 +1,6 @@
 package app.core;
 
+import app.Globals;
 import app.chat.ChatService;
 import java.io.IOException;
 import tools.log.Flogger;
