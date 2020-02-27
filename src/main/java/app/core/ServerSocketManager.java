@@ -3,7 +3,7 @@ package app.core;
 import app.chat.ChatService;
 import app.core.AppPacket.ProtocolSignal;
 import app.core.events.ServerActiveClientsEvent;
-import app.core.events.WorkerAuthEvent;
+import app.core.events.WorkerLoginEvent;
 import app.core.events.WorkerStatusEvent;
 import com.google.common.eventbus.Subscribe;
 import java.io.IOException;
@@ -142,9 +142,9 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
             socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
         } else {
             workerStatusEvent.getWorker().unregister(this);
-            workerList.remove(workerStatusEvent.getWorker().getSessionID());
+            workerList.remove(workerStatusEvent.getSessionID());
             socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
-            socketEventBus.post(new WorkerAuthEvent(workerStatusEvent.getWorker()));
+            socketEventBus.post(new WorkerLoginEvent(workerStatusEvent.getWorker()));
         }
     }
 

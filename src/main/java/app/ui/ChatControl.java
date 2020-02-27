@@ -1,16 +1,18 @@
 package app.ui;
 
+import app.core.ClientFacade;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Circle;
-import tools.fx.FxDialogs;
+import tools.log.Flogger;
 
 public class ChatControl extends VBox {
 
@@ -21,7 +23,7 @@ public class ChatControl extends VBox {
     private URL location;
 
     @FXML
-    protected TextArea areaChatLog;
+    private TextArea areaChatLog;
 
     @FXML
     private TextField fieldMessageDraft;
@@ -29,51 +31,25 @@ public class ChatControl extends VBox {
     @FXML
     private Button btnSend1;
 
-    @FXML
-    protected Circle circleClientStatus;
+    private Tab tab;
+    private String username;
 
-    @FXML
-    private TextField fieldUsername;
-
-    @FXML
-    private Button btnSetUsername;
-
-    @FXML
-    private Button btnExit;
-
-    @FXML
-    void btnExitAction(ActionEvent event) {
-        Platform.exit();
-        System.exit(0);
-    }
-
-    @FXML
-    void btnSetUsernameAction(ActionEvent event) {
-//        if (checkUsername().length() > 1)
-//            ClientFacade.inst().sendMessage(fieldUsername.getText(), "# Se ha unido al chat.");
-    }
-
-
-    @FXML
-    void sendMessageAction(ActionEvent event) {
-        if (checkUsername().length() > 1 && fieldMessageDraft.getText().length() > 0) {
-//            ClientFacade.inst().sendMessage(fieldUsername.getText(), fieldMessageDraft.getText());
-            fieldMessageDraft.setText("");
+    {
+        try {
+            final FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/ChatPane.fxml"));
+            fxmlLoader.setRoot(this);
+            fxmlLoader.setController(this);
+            fxmlLoader.load();
+        } catch (final IOException e) {
+            Flogger.atSevere().withCause(e).log("ER-UI-CC-0001");
         }
     }
 
-    private String checkUsername() {
-        String field = fieldUsername.getText();
-        if (!btnSetUsername.isDisabled()) {
-            if (field.length() < 4 || field.equalsIgnoreCase("user")) {
-                FxDialogs.showError("Error", "invalid Username");
-                return "";
-            } else {
-                fieldUsername.setDisable(true);
-                btnSetUsername.setDisable(true);
-            }
-        }
-        return field;
+    public ChatControl(String username) {
+        this.username = username;
+        tab           = new Tab(username);
+        tab.setClosable(true);
+        tab.setContent(this);
     }
 
     @FXML
@@ -81,10 +57,26 @@ public class ChatControl extends VBox {
         assert areaChatLog != null : "fx:id=\"areaChatLog\" was not injected: check your FXML file 'ChatPane.fxml'.";
         assert fieldMessageDraft != null : "fx:id=\"fieldMessageDraft\" was not injected: check your FXML file 'ChatPane.fxml'.";
         assert btnSend1 != null : "fx:id=\"btnSend1\" was not injected: check your FXML file 'ChatPane.fxml'.";
-        assert circleClientStatus != null : "fx:id=\"circleClientStatus\" was not injected: check your FXML file 'ChatPane.fxml'.";
-        assert fieldUsername != null : "fx:id=\"fieldUsername\" was not injected: check your FXML file 'ChatPane.fxml'.";
-        assert btnSetUsername != null : "fx:id=\"btnSetUsername\" was not injected: check your FXML file 'ChatPane.fxml'.";
-        assert btnExit != null : "fx:id=\"btnExit\" was not injected: check your FXML file 'ChatPane.fxml'.";
+    }
 
+
+    @FXML
+    void sendMessageAction(ActionEvent event) {
+        String draft = fieldMessageDraft.getText();
+        if (draft.length() > 0)
+            ClientFacade.inst().sendPM(username, draft);
+
+    }
+
+    public Tab getTab() {
+        return tab;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void newMessage(String origin, String message) {
+        areaChatLog.appendText(origin + ": " + message + "\n");
     }
 }

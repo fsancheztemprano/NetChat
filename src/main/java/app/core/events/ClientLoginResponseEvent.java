@@ -1,10 +1,10 @@
 package app.core.events;
 
-public class ClientAuthResponseEvent extends ClientEvent {
+public class ClientLoginResponseEvent extends ClientEvent {
 
     private final long auth;
 
-    public ClientAuthResponseEvent(long auth) {
+    public ClientLoginResponseEvent(long auth) {
         this.auth = auth;
     }
 

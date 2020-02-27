@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.net.SocketAddress;
 import java.util.Objects;
 
-public class AppPacket implements Serializable {
+public class AppPacket implements Serializable, Cloneable {
 
     private ProtocolSignal signal;
     private SocketAddress originSocketAddress;
@@ -138,21 +138,22 @@ public class AppPacket implements Serializable {
         SERVER_BROADCAST,
         UNAUTHORIZED_REQUEST,
 
-        AUTH_REQUEST,
+        CLIENT_LOGIN_REQUEST,
         AUTH_RESPONSE,
-        AUTH_REMOVE,
+        CLIENT_LOGOUT_REQUEST,
 
         NEW_MESSAGE,
 
         SERVER_SHUTDOWN,
 
 
-        NEW_PRIVATE_MSG,
-        NEW_GROUP_MSG,
+        CLIENT_PM,
+        CLIENT_PM_ACK,
+        CLIENT_GROUP_MSG,
+        CLIENT_REQUEST_USER_LIST,
+        CLIENT_REQUEST_GROUP_LIST,
 
         BROADCAST_USER_LIST,
-        CLIENT_REQUEST_USER_LIST,
-        BROADCAST_GROUP_LIST,
-        CLIENT_REQUEST_GROUP_LIST
+        BROADCAST_GROUP_LIST
     }
 }

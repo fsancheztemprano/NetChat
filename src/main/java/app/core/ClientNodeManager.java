@@ -69,7 +69,7 @@ public class ClientNodeManager extends AbstractNodeManager {
         if (username.length() < 4 || password.length() < 4)
             return;
         String hashedPass = HashTools.getSha256(password);
-        AppPacket loginRequest = new AppPacket(ProtocolSignal.AUTH_REQUEST);
+        AppPacket loginRequest = new AppPacket(ProtocolSignal.CLIENT_LOGIN_REQUEST);
         loginRequest.setUsername(username);
         loginRequest.setPassword(hashedPass);
         queueTransmission(loginRequest);
@@ -82,7 +82,7 @@ public class ClientNodeManager extends AbstractNodeManager {
     }
 
     public void sendLogOutAction() {
-        queueTransmission(new AppPacket(ProtocolSignal.AUTH_REMOVE));
+        queueTransmission(new AppPacket(ProtocolSignal.CLIENT_LOGOUT_REQUEST));
         setSessionID(-1);
     }
 
@@ -92,5 +92,12 @@ public class ClientNodeManager extends AbstractNodeManager {
 
     public void sendGroupListRequest() {
         queueTransmission(new AppPacket(ProtocolSignal.CLIENT_REQUEST_GROUP_LIST));
+    }
+
+    public void sendPM(String username, String message) {
+        AppPacket pmPacket = new AppPacket(ProtocolSignal.CLIENT_PM);
+        pmPacket.setDestiny(username);
+        pmPacket.setMessage(message);
+        queueTransmission(pmPacket);
     }
 }

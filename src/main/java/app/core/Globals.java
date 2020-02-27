@@ -8,14 +8,14 @@ public interface Globals {
     String DEFAULT_SERVER_HOSTNAME = "localhost";
 
 
-    long HEARTBEAT_TIMEOUT = 60;
+    long HEARTBEAT_TIMEOUT = 90;
 
     int CLIENT_CONNECT_TIMEOUT = 5000;//ms
 
     long HEARTBEAT_SLEEP_INTERVAL = 2000;//MS
-    int HEARTBEAT_DELAY = 10;//in seconds
+    int HEARTBEAT_DELAY = 30;//in seconds
 
     long TRANSMITTER_THREAD_TIMEOUT = 1;//seconds
     long PROCESSORS_THREAD_TIMEOUT = 1;//seconds
-    int HEARTBEAT_FIRST = 1;//seconds
+    int HEARTBEAT_FIRST = 10;//seconds
 }

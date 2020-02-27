@@ -83,4 +83,8 @@ public class ClientFacade {
     public void requestGroupList() {
         clientSocketManager.sendGroupListRequest();
     }
+
+    public void sendPM(String username, String draft) {
+        clientSocketManager.sendPM(username, draft);
+    }
 }
