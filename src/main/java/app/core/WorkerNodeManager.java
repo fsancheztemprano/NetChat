@@ -14,9 +14,9 @@ public class WorkerNodeManager extends AbstractNodeManager {
 
     public WorkerNodeManager(ServerSocketManager serverSocketManager, Socket managedSocket) {
         super(managedSocket);
-        this.commandProcessor = new WorkerCommandProcessor(this);
         this.serverID         = serverSocketManager.getSessionID();
         this.serverEventBus   = serverSocketManager.getSocketEventBus();
+        this.commandProcessor = new WorkerCommandProcessor(this);
     }
 
     public EventBus getServerEventBus() {

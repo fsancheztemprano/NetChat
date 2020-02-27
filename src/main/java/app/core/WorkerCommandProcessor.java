@@ -20,7 +20,8 @@ public class WorkerCommandProcessor extends AbstractCommandProcessor {
         if (appPacket.getSignal() == ProtocolSignal.AUTH_REQUEST || appPacket.getSignal() == ProtocolSignal.HEARTBEAT || appPacket.getAuth() == managerID) {
             switch (appPacket.getSignal()) {
                 case AUTH_REQUEST:
-                    serverEventBus.post(new WorkerAuthEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getUsername(), appPacket.getPassword()));
+                    WorkerAuthEvent event = new WorkerAuthEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getUsername(), appPacket.getPassword());
+                    serverEventBus.post(event);
                     break;
                 case AUTH_REMOVE:
                     serverEventBus.post(new WorkerAuthEvent((WorkerNodeManager) appPacket.getHandler()));
