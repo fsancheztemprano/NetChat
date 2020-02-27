@@ -32,10 +32,18 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
 
 
     public ServerSocketManager() throws IOException {
-        serverSocket     = new ServerSocket();
-        workerList       = new ConcurrentHashMap<>();
+        serverSocket = new ServerSocket();
+        workerList   = new ConcurrentHashMap<>();
         register(ChatService.getInstance());
         ChatService.getInstance().setChatServer(this);
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 
     @Override
@@ -96,26 +104,6 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
         }
     }
 
-
-    public ConcurrentHashMap<Long, WorkerNodeManager> getWorkerList() {
-        return workerList;
-    }
-
-    public void transmitToAllClients(AppPacket appPacket) {
-        workerList.forEachValue(1, workerSocketManager -> workerSocketManager.queueTransmission(appPacket));
-    }
-
-    public void transmitToListOfIds(final Set<Long> ids, final AppPacket appPacket) {
-        ids.forEach(id -> {
-            new Thread(() -> {
-                WorkerNodeManager worker = workerList.get(id);
-                if (worker != null)
-                    worker.queueTransmission(appPacket);
-            }).start();
-        });
-    }
-
-
     public boolean isServerSocketBound() {
         return serverSocket != null && serverSocket.isBound();
     }
@@ -124,7 +112,7 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
         return serverSocket != null && !serverSocket.isClosed();
     }
 
-    void closeServerSocket() {
+    private void closeServerSocket() {
         log("Cerrando el ServerSocket");
         if (isServerSocketOpen()) {
             try {
@@ -144,21 +132,6 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
         workerList.clear();
     }
 
-
-    public void queueServerBroadcast(String message) {
-        AppPacket newMessage = new AppPacket(ProtocolSignal.SERVER_BROADCAST);
-        newMessage.setUsername("SERVER");
-        newMessage.setMessage(message);
-        transmitToAllClients(newMessage);
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
 
 
     //Subscribe methods listening to workers
@@ -180,7 +153,32 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
         getSocketEventBus().post(output);
     }
 
-    public void sendAuthApproval(long sessionID, boolean validated) {
+    public void broadcast(AppPacket appPacket) {
+        workerList.forEachValue(1, workerSocketManager -> workerSocketManager.queueTransmission(appPacket));
+    }
+
+    public void queueServerBroadcast(String message) {
+        AppPacket newMessage = new AppPacket(ProtocolSignal.SERVER_BROADCAST);
+        newMessage.setUsername("SERVER");
+        newMessage.setMessage(message);
+        broadcast(newMessage);
+    }
+
+    public void sendAuthApproval(final long sessionID, final boolean validated) {
         workerList.get(sessionID).sendAuthApproval(validated);
+    }
+
+    public void transmitTo(final Set<Long> sessionIDs, final AppPacket appPacket) {
+        sessionIDs.forEach(sessionID -> {
+            transmitTo(sessionID, appPacket);
+        });
+    }
+
+    public void transmitTo(final long sessionID, final AppPacket appPacket) {
+        new Thread(() -> {
+            final WorkerNodeManager worker = workerList.get(sessionID);
+            if (worker != null)
+                worker.queueTransmission(appPacket);
+        }).start();
     }
 }

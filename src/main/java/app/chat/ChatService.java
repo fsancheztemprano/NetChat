@@ -5,6 +5,8 @@ import app.core.AppPacket.ProtocolSignal;
 import app.core.ServerSocketManager;
 import app.core.events.WorkerAuthEvent;
 import app.core.events.WorkerAuthEvent.AuthType;
+import app.core.events.WorkerRequestEvent;
+import app.core.events.WorkerRequestEvent.RequestType;
 import com.google.common.eventbus.Subscribe;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,6 +44,22 @@ public class ChatService {
         this.chatServer = chatServer;
     }
 
+    private void broadcastUserList() {
+        chatServer.transmitTo(new HashSet<>(sessionMap.keySet()), getUserListAppPacket());
+    }
+
+    private void transmitUserList(long id) {
+        chatServer.transmitTo(id, getUserListAppPacket());
+    }
+
+    private AppPacket getUserListAppPacket() {
+        AppPacket appPacket = new AppPacket(ProtocolSignal.BROADCAST_USER_LIST);
+        appPacket.setUsername("SERVER");
+        Stream<String> usernameStream = sessionMap.values().stream().map(User::getUsername).distinct();
+        appPacket.setList(usernameStream.toArray(String[]::new));
+        return appPacket;
+    }
+
     @Subscribe
     public void validateLoginRequest(WorkerAuthEvent workerAuthEvent) {
         if (workerAuthEvent.getAuthType() == AuthType.REQUEST) {
@@ -71,12 +89,11 @@ public class ChatService {
         }
     }
 
-    private void broadcastUserList() {
-        AppPacket appPacket = new AppPacket(ProtocolSignal.BROADCAST_USER_LIST);
-        appPacket.setUsername("SERVER");
-        Stream<String> usernameStream = sessionMap.values().stream().map(User::getUsername).distinct();
-        appPacket.setList(usernameStream.toArray(String[]::new));
-        chatServer.transmitToListOfIds(new HashSet<>(sessionMap.keySet()), appPacket);
+    @Subscribe
+    public void userRequestReceived(WorkerRequestEvent workerRequestEvent) {
+        if (workerRequestEvent.getRequestType() == RequestType.USER_LIST_REQUEST) {
+            transmitUserList(workerRequestEvent.getSessionID());
+        }
     }
 
 }
