@@ -7,6 +7,7 @@ import app.core.events.SocketStatusEvent;
 import com.google.common.eventbus.Subscribe;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -195,8 +196,8 @@ public class ClientControl {
     private void cleanUpChatPane() {
         Platform.runLater(() -> {
             tabChat.setDisable(true);
-            listViewUsers.getItems().clear();
-            listViewGroups.getItems().clear();
+            usersObservableSet.clear();
+//            listViewGroups.getItems().clear();
             tabPaneChats.getTabs().remove(1, tabPaneChats.getTabs().size());
             tabPaneGroups.getTabs().remove(1, tabPaneGroups.getTabs().size());
         });
@@ -294,6 +295,10 @@ public class ClientControl {
 
     @Subscribe
     public void userListReceived(ClientUserListEvent userListEvent) {
-        usersObservableSet.addAll(Arrays.asList(userListEvent.getUserList()));
+        Platform.runLater(() -> {
+            List<String> list = Arrays.asList(userListEvent.getUserList());
+            usersObservableSet.addAll(list);
+            usersObservableSet.retainAll(list);
+        });
     }
 }

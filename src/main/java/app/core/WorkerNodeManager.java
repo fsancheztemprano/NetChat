@@ -1,8 +1,7 @@
 package app.core;
 
+import app.core.AppPacket.ProtocolSignal;
 import app.core.events.WorkerStatusEvent;
-import app.core.packetmodel.AppPacket;
-import app.core.packetmodel.AppPacket.ProtocolSignal;
 import java.net.Socket;
 import javax.annotation.Nonnull;
 import tools.log.Flogger;

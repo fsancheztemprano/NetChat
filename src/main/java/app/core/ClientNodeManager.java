@@ -1,8 +1,6 @@
 package app.core;
 
-import app.core.packetmodel.AppPacket;
-import app.core.packetmodel.AuthRemoveEvent;
-import app.core.packetmodel.AuthRequestEvent;
+import app.core.AppPacket.ProtocolSignal;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import javax.annotation.Nonnull;
@@ -67,12 +65,13 @@ public class ClientNodeManager extends AbstractNodeManager {
     }
 
 
-    @SuppressWarnings("UnstableApiUsage")
     void sendLoginRequest(@Nonnull final String username, @Nonnull final String password) {
         if (username.length() < 4 || password.length() < 4)
             return;
         String hashedPass = HashTools.getSha256(password);
-        AppPacket loginRequest = new AuthRequestEvent(username, hashedPass);
+        AppPacket loginRequest = new AppPacket(ProtocolSignal.AUTH_REQUEST);
+        loginRequest.setUsername(username);
+        loginRequest.setPassword(hashedPass);
         queueTransmission(loginRequest);
     }
 
@@ -83,7 +82,7 @@ public class ClientNodeManager extends AbstractNodeManager {
     }
 
     public void sendLogOutAction() {
-        queueTransmission(new AuthRemoveEvent());
+        queueTransmission(new AppPacket(ProtocolSignal.AUTH_REMOVE));
         setSessionID(-1);
     }
 }

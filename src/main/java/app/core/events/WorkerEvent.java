@@ -4,13 +4,19 @@ import app.core.WorkerNodeManager;
 
 public abstract class WorkerEvent {
 
-    private final WorkerNodeManager emitter;
+    protected final WorkerNodeManager worker;
+    protected final long sessionID;
 
-    public WorkerEvent(WorkerNodeManager emitter) {
-        this.emitter = emitter;
+    public WorkerEvent(WorkerNodeManager worker) {
+        this.worker    = worker;
+        this.sessionID = worker.getSessionID();
     }
 
-    public WorkerNodeManager getEmitter() {
-        return emitter;
+    public WorkerNodeManager getWorker() {
+        return worker;
+    }
+
+    public long getSessionID() {
+        return sessionID;
     }
 }

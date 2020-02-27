@@ -1,8 +1,6 @@
 package app.core;
 
-import app.core.packetmodel.AppPacket;
-import app.core.packetmodel.AuthRemoveEvent;
-import app.core.packetmodel.AuthRequestEvent;
+import app.core.events.WorkerAuthEvent;
 import javax.annotation.Nonnull;
 
 public class ServerCommandProcessor extends AbstractCommandProcessor {
@@ -18,12 +16,10 @@ public class ServerCommandProcessor extends AbstractCommandProcessor {
     protected void processCommand(@Nonnull AppPacket appPacket) {
         switch (appPacket.getSignal()) {
             case AUTH_REQUEST:
-                AuthRequestEvent authRequestEvent = (AuthRequestEvent) appPacket;
-                serverSocketManager.getSocketEventBus().post((authRequestEvent));
+                serverSocketManager.getSocketEventBus().post(new WorkerAuthEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getUsername(), appPacket.getPassword()));
                 break;
             case AUTH_REMOVE:
-                AuthRemoveEvent authRemoveEvent = (AuthRemoveEvent) appPacket;
-                serverSocketManager.getSocketEventBus().post((authRemoveEvent));
+                serverSocketManager.getSocketEventBus().post(new WorkerAuthEvent((WorkerNodeManager) appPacket.getHandler()));
                 break;
         }
     }

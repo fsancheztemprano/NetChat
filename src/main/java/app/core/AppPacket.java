@@ -1,6 +1,5 @@
-package app.core.packetmodel;
+package app.core;
 
-import app.core.AbstractNodeManager;
 import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.net.SocketAddress;

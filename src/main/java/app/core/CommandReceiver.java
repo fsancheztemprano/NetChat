@@ -1,6 +1,5 @@
 package app.core;
 
-import app.core.packetmodel.AppPacket;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;

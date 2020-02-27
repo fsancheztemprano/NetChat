@@ -1,10 +1,10 @@
 package app.core;
 
 import app.chat.ChatService;
+import app.core.AppPacket.ProtocolSignal;
 import app.core.events.ServerActiveClientsEvent;
+import app.core.events.WorkerAuthEvent;
 import app.core.events.WorkerStatusEvent;
-import app.core.packetmodel.AppPacket;
-import app.core.packetmodel.AppPacket.ProtocolSignal;
 import com.google.common.eventbus.Subscribe;
 import java.io.IOException;
 import java.net.BindException;
@@ -108,7 +108,7 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
         workerList.forEachValue(1, workerSocketManager -> workerSocketManager.queueTransmission(appPacket));
     }
 
-    public void transmitToListOfIds(final Set<Long> ids, AppPacket appPacket) {
+    public void transmitToListOfIds(final Set<Long> ids, final AppPacket appPacket) {
         ids.forEach(id -> {
             new Thread(() -> {
                 WorkerNodeManager worker = workerList.get(id);
@@ -166,19 +166,24 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
 
     //Subscribe methods listening to workers
     @Subscribe
-    public void workerStatusChange(WorkerStatusEvent worker) {
-        if (worker.isActive()) {
-            workerList.put(worker.getEmitter().getSessionID(), worker.getEmitter());
+    public void workerStatusChange(WorkerStatusEvent workerStatusEvent) {
+        if (workerStatusEvent.isActive()) {
+            workerList.put(workerStatusEvent.getSessionID(), workerStatusEvent.getWorker());
             socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
         } else {
-            worker.getEmitter().unregister(this);
-            workerList.remove(worker.getEmitter().getSessionID());
+            workerStatusEvent.getWorker().unregister(this);
+            workerList.remove(workerStatusEvent.getWorker().getSessionID());
             socketEventBus.post(new ServerActiveClientsEvent(this, workerList.size()));
+            socketEventBus.post(new WorkerAuthEvent(workerStatusEvent.getWorker()));
         }
     }
 
     @Subscribe
     public void outputLog(String output) {
         getSocketEventBus().post(output);
+    }
+
+    public void sendAuthApproval(long sessionID, boolean validated) {
+        workerList.get(sessionID).sendAuthApproval(validated);
     }
 }

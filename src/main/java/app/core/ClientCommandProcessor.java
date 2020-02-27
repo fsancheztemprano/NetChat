@@ -2,7 +2,6 @@ package app.core;
 
 import app.core.events.ClientAuthResponseEvent;
 import app.core.events.ClientUserListEvent;
-import app.core.packetmodel.AppPacket;
 import javax.annotation.Nonnull;
 
 public class ClientCommandProcessor extends AbstractCommandProcessor {
@@ -18,7 +17,7 @@ public class ClientCommandProcessor extends AbstractCommandProcessor {
     protected void processCommand(@Nonnull AppPacket appPacket) {
         switch (appPacket.getSignal()) {
             case UNAUTHORIZED_REQUEST:
-                clientManager.log("Unauthorized Request Sent");
+                clientManager.log("Unauthorized Request");
             case AUTH_RESPONSE:
                 clientManager.setSessionID(appPacket.getAuth());
                 clientManager.getSocketEventBus().post(new ClientAuthResponseEvent(appPacket.getAuth()));

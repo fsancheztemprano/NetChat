@@ -1,13 +1,14 @@
 package app.core.events;
 
+
 import app.core.WorkerNodeManager;
 
 public class WorkerStatusEvent extends WorkerEvent {
 
     private final boolean active;
 
-    public WorkerStatusEvent(WorkerNodeManager emitter, boolean active) {
-        super(emitter);
+    public WorkerStatusEvent(WorkerNodeManager worker, boolean active) {
+        super(worker);
         this.active = active;
     }
 

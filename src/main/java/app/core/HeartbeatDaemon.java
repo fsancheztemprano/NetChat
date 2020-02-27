@@ -1,7 +1,6 @@
 package app.core;
 
-import app.core.packetmodel.AppPacket;
-import app.core.packetmodel.AppPacket.ProtocolSignal;
+import app.core.AppPacket.ProtocolSignal;
 import java.time.LocalDateTime;
 import tools.log.Flogger;
 
