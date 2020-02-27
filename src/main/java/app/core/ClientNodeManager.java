@@ -85,4 +85,12 @@ public class ClientNodeManager extends AbstractNodeManager {
         queueTransmission(new AppPacket(ProtocolSignal.AUTH_REMOVE));
         setSessionID(-1);
     }
+
+    public void sendUserListRequest() {
+        queueTransmission(new AppPacket(ProtocolSignal.CLIENT_REQUEST_USER_LIST));
+    }
+
+    public void sendGroupListRequest() {
+        queueTransmission(new AppPacket(ProtocolSignal.CLIENT_REQUEST_GROUP_LIST));
+    }
 }

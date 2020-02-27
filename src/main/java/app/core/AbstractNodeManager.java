@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import tools.log.Flogger;
 
-public abstract class AbstractNodeManager extends AbstractSocketManager {
+public abstract class AbstractNodeManager extends ActivableSocketManager {
 
     protected final Socket managedSocket;
     protected final ExecutorService managerPool;
@@ -18,6 +18,7 @@ public abstract class AbstractNodeManager extends AbstractSocketManager {
     protected final HeartbeatDaemon heartbeatDaemon;
     protected final CommandReceiver commandReceiver;
     protected final CommandTransmitter commandTransmitter;
+    protected AbstractCommandProcessor commandProcessor;
 
     protected InputStream inputStream;
     protected OutputStream outputStream;
@@ -36,6 +37,10 @@ public abstract class AbstractNodeManager extends AbstractSocketManager {
 
     public ExecutorService getManagerPool() {
         return managerPool;
+    }
+
+    public AbstractCommandProcessor getCommandProcessor() {
+        return commandProcessor;
     }
 
     public HeartbeatDaemon getHeartbeatDaemon() {
@@ -145,7 +150,8 @@ public abstract class AbstractNodeManager extends AbstractSocketManager {
             commandReceiver.setActive(false);
         if (commandTransmitter != null)
             commandTransmitter.setActive(false);
-        disableCommandProcessor();
+        if (commandProcessor != null)
+            commandProcessor.setActive(false);
     }
 
 

@@ -142,8 +142,6 @@ public class AppPacket implements Serializable {
         AUTH_RESPONSE,
         AUTH_REMOVE,
 
-        CLIENT_JOIN,
-        CLIENT_QUIT,
         NEW_MESSAGE,
 
         SERVER_SHUTDOWN,
@@ -152,6 +150,9 @@ public class AppPacket implements Serializable {
         NEW_PRIVATE_MSG,
         NEW_GROUP_MSG,
 
-        BROADCAST_USER_LIST
+        BROADCAST_USER_LIST,
+        CLIENT_REQUEST_USER_LIST,
+        BROADCAST_GROUP_LIST,
+        CLIENT_REQUEST_GROUP_LIST
     }
 }

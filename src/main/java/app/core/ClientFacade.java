@@ -75,4 +75,12 @@ public class ClientFacade {
     public void logout() {
         clientSocketManager.sendLogOutAction();
     }
+
+    public void requestUserList() {
+        clientSocketManager.sendUserListRequest();
+    }
+
+    public void requestGroupList() {
+        clientSocketManager.sendGroupListRequest();
+    }
 }

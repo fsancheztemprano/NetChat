@@ -2,6 +2,7 @@ package app.core;
 
 import app.core.AppPacket.ProtocolSignal;
 import app.core.events.WorkerStatusEvent;
+import com.google.common.eventbus.EventBus;
 import java.net.Socket;
 import javax.annotation.Nonnull;
 import tools.log.Flogger;
@@ -9,13 +10,17 @@ import tools.log.Flogger;
 public class WorkerNodeManager extends AbstractNodeManager {
 
     private final long serverID;
-    private final AbstractCommandProcessor serverCommandProcessor;
+    private final EventBus serverEventBus;
 
     public WorkerNodeManager(ServerSocketManager serverSocketManager, Socket managedSocket) {
         super(managedSocket);
-        this.commandProcessor       = new WorkerCommandProcessor(this);
-        this.serverID               = serverSocketManager.getSessionID();
-        this.serverCommandProcessor = serverSocketManager.getCommandProcessor();
+        this.commandProcessor = new WorkerCommandProcessor(this);
+        this.serverID         = serverSocketManager.getSessionID();
+        this.serverEventBus   = serverSocketManager.getSocketEventBus();
+    }
+
+    public EventBus getServerEventBus() {
+        return serverEventBus;
     }
 
     @Override
@@ -69,7 +74,4 @@ public class WorkerNodeManager extends AbstractNodeManager {
         return super.queueTransmission(appPacket);
     }
 
-    public AbstractCommandProcessor getServerCommandProcessor() {
-        return serverCommandProcessor;
-    }
 }

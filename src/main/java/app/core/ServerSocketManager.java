@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import tools.log.Flogger;
 
 @SuppressWarnings("UnstableApiUsage")
-public class ServerSocketManager extends AbstractSocketManager implements Runnable {
+public class ServerSocketManager extends ActivableSocketManager implements Runnable {
 
     private String hostname = Globals.DEFAULT_SERVER_HOSTNAME;
     private int port = Globals.DEFAULT_SERVER_PORT;
@@ -34,7 +34,6 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
     public ServerSocketManager() throws IOException {
         serverSocket     = new ServerSocket();
         workerList       = new ConcurrentHashMap<>();
-        commandProcessor = new ServerCommandProcessor(this);
         register(ChatService.getInstance());
         ChatService.getInstance().setChatServer(this);
     }
@@ -42,7 +41,6 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
     @Override
     public void run() {
         try {
-            new Thread(commandProcessor).start();
             log("Creando socket servidor. Clientes Max: " + Globals.MAX_ACTIVE_CLIENTS);
             inetSocketAddress = (hostname.length() > 6 && InetAddress.getByName(hostname).isReachable(100))
                                 ? new InetSocketAddress(hostname, port)
@@ -88,7 +86,6 @@ public class ServerSocketManager extends AbstractSocketManager implements Runnab
             try {
                 closeServerSocket();
                 stopAllClients();
-                disableCommandProcessor();
             } catch (Exception e) {
                 Flogger.atWarning().withCause(e).log("ER-SSM-0001");
             } finally {

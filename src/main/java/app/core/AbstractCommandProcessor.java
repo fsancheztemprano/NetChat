@@ -1,5 +1,6 @@
 package app.core;
 
+import java.net.SocketException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -8,6 +9,12 @@ import tools.log.Flogger;
 public abstract class AbstractCommandProcessor extends Activable implements Runnable {
 
     protected final BlockingQueue<AppPacket> toProcessCommandQueue = new ArrayBlockingQueue<>(Byte.MAX_VALUE);
+
+    protected final AbstractNodeManager socketManager;
+
+    public AbstractCommandProcessor(AbstractNodeManager socketManager) {
+        this.socketManager = socketManager;
+    }
 
     @Override
     public void run() {
@@ -19,17 +26,18 @@ public abstract class AbstractCommandProcessor extends Activable implements Runn
                 if (appPacket != null) {
                     processCommand(appPacket);
                 }
-//                if (!manager.isActive())
-//                    throw new SocketException();
+                if (!socketManager.isActive())
+                    throw new SocketException();
 //            } catch (SocketException se) {
 //                Flogger.atWarning().withCause(se).log("ER-CP-0001");       //(manager closed) TODO msg: connection lost
 //                setActive(false);
-            } catch (InterruptedException ie) {
-                Flogger.atWarning().withCause(ie).log("ER-CP-0002");
-                setActive(false);
+//            } catch (InterruptedException ie) {
+//                Flogger.atWarning().withCause(ie).log("ER-CP-0002");
+//                setActive(false);
             } catch (Exception e) {
                 Flogger.atWarning().withCause(e).log("ER-CP-0000");
                 setActive(false);
+                socketManager.stopSocketManager();
                 Thread.currentThread().interrupt();
             }
         }

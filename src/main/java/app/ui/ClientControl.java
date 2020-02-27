@@ -178,13 +178,13 @@ public class ClientControl {
     @FXML
     void btnNavChatsAction(ActionEvent event) {
         chatMenuPane.setCenter(tabPaneChats);
-
+        ClientFacade.inst().requestUserList();
     }
 
     @FXML
     void btnNavGroupsAction(ActionEvent event) {
         chatMenuPane.setCenter(tabPaneGroups);
-
+        ClientFacade.inst().requestGroupList();
     }
 
     @FXML
