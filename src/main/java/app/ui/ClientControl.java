@@ -295,7 +295,7 @@ public class ClientControl {
             tab = groupChat.getTab();
             tab.setOnCloseRequest((a) -> {
                 openGroups.remove(groupChat.getTitle());
-//                ClientFacade.inst().requestQuitGroup(selectedGroup);         TODO
+                ClientFacade.inst().requestQuitGroup(selectedGroup);
             });
             openGroups.put(selectedGroup, groupChat);
             Platform.runLater(() -> tabPaneGroups.getTabs().add(tab));

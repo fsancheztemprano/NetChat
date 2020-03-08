@@ -42,7 +42,7 @@ public class CommandTransmitter extends Activable implements Runnable {
                         socketManager.log("Out: " + appPacket.toString());
                     }
                 } catch (SocketException se) {
-                    Flogger.atWarning().withCause(se).log("ER-CT-0001");       //(outputStream closed) TODO msg:Server connection lost
+                    Flogger.atWarning().withCause(se).log("ER-CT-0001");
                     setActive(false);
                     Thread.currentThread().interrupt();
                 } catch (InterruptedException ie) {

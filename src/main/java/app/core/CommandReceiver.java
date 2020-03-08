@@ -24,12 +24,12 @@ public class CommandReceiver extends Activable implements Runnable {
                     try {
                         AppPacket appPacket = (AppPacket) objectInputStream.readObject();
                         appPacket.setHandler(socketManager);
-                        socketManager.updateHeartbeatDaemonTime();                  //TODO migrate to event bus
+                        socketManager.updateHeartbeatDaemonTime();
                         socketManager.log("In: " + appPacket.toString());
                         socketManager.getCommandProcessor().queueCommandProcess(appPacket);
                     } catch (SocketException se) {
                         setActive(false);
-                        Flogger.atWarning().withCause(se).log("ER-CR-0001");       //(inputStream closed)TODO msg:Server connection lost, Event Bus?
+                        Flogger.atWarning().withCause(se).log("ER-CR-0001");
                         Thread.currentThread().interrupt();
                     } catch (IOException ioe) {
                         setActive(false);

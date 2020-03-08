@@ -7,6 +7,7 @@ import app.core.events.WorkerLoginEvent;
 import app.core.events.WorkerLogoutEvent;
 import app.core.events.WorkerNewGroupEvent;
 import app.core.events.WorkerPrivateMessageEvent;
+import app.core.events.WorkerQuitGroupEvent;
 import app.core.events.WorkerUserListEvent;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
@@ -39,7 +40,7 @@ public class ChatService {
         return instance;
     }
 
-    private final ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login) TODO: move to Persistence layer
+    private final ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login)
     private final ConcurrentHashMap<Long, User> sessionMap = new ConcurrentHashMap<>();
     private final SetMultimap<String, Long> groupsMultimap = Multimaps.synchronizedSetMultimap(MultimapBuilder.SetMultimapBuilder.hashKeys().hashSetValues().build());
     private ServerSocketManager chatServer = null;
@@ -177,15 +178,22 @@ public class ChatService {
     @Subscribe
     public void joinGroupRequest(WorkerJoinGroupEvent joinGroupEvent) {
         String joinGroup = joinGroupEvent.getGroupName().trim();
-        if (joinGroup.length() < 5) {
-            chatServer.sendAlertMessage(joinGroupEvent.getSessionID(), "Group Name too short (<5)");
-            return;
-        }
         if (!groupsMultimap.containsKey(joinGroup)) {
             chatServer.sendAlertMessage(joinGroupEvent.getSessionID(), "Group does not exist");
             return;
         }
         groupsMultimap.put(joinGroup, joinGroupEvent.getSessionID());
+        broadcastGroupUserList(joinGroup);
+    }
+
+    @Subscribe
+    public void quitGroupRequest(WorkerQuitGroupEvent quitGroupEvent) {
+        String joinGroup = quitGroupEvent.getGroupName().trim();
+        if (!groupsMultimap.containsKey(joinGroup)) {
+            chatServer.sendAlertMessage(quitGroupEvent.getSessionID(), "Group does not exist");
+            return;
+        }
+        groupsMultimap.remove(joinGroup, quitGroupEvent.getSessionID());
         broadcastGroupUserList(joinGroup);
     }
 

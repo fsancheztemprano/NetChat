@@ -103,4 +103,8 @@ public class ClientNodeManager extends AbstractNodeManager {
     public void requestJoinGroup(String selectedGroup) {
         queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_REQUEST_GROUP_JOIN).setDestiny(selectedGroup));
     }
+
+    public void requestQuitGroup(String selectedGroup) {
+        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_REQUEST_GROUP_QUIT).setDestiny(selectedGroup));
+    }
 }

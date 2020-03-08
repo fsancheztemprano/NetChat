@@ -107,9 +107,9 @@
             </GridPane>
           </top>
           <right>
-            <TabPane fx:id="tabPaneGroups" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+            <TabPane fx:id="tabPaneGroups" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="ALL_TABS" BorderPane.alignment="CENTER">
               <tabs>
-                <Tab fx:id="tabGroupsList" text="Groups">
+                <Tab fx:id="tabGroupsList" closable="false" text="Groups">
                   <content>
                     <BorderPane>
                       <center>
@@ -140,7 +140,7 @@
           <left>
             <TabPane fx:id="tabPaneChats" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="ALL_TABS" BorderPane.alignment="CENTER">
               <tabs>
-                <Tab fx:id="tabUsersList" text="Users" closable="false">
+                <Tab fx:id="tabUsersList" closable="false" text="Users">
                   <content>
                     <BorderPane prefHeight="200.0" prefWidth="200.0">
                       <bottom>

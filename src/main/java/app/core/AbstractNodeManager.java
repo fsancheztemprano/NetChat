@@ -149,7 +149,7 @@ public abstract class AbstractNodeManager extends ActivableSocketManager {
             commandProcessor.setActive(false);
     }
 
-    public void updateHeartbeatDaemonTime() { //TODO change to EventBus
+    public void updateHeartbeatDaemonTime() {
         heartbeatDaemon.updateHeartBeatTime();
     }
 

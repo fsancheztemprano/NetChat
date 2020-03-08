@@ -97,4 +97,8 @@ public class ClientFacade {
     public void requestJoinGroup(String selectedGroup) {
         clientSocketManager.requestJoinGroup(selectedGroup);
     }
+
+    public void requestQuitGroup(String selectedGroup) {
+        clientSocketManager.requestQuitGroup(selectedGroup);
+    }
 }

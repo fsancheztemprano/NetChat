@@ -34,7 +34,7 @@ public abstract class AbstractCommandProcessor extends Activable implements Runn
                 if (!socketManager.isActive())
                     throw new SocketException();
 //            } catch (SocketException se) {
-//                Flogger.atWarning().withCause(se).log("ER-CP-0001");       //(manager closed) TODO msg: connection lost
+//                Flogger.atWarning().withCause(se).log("ER-CP-0001");
 //                setActive(false);
 //            } catch (InterruptedException ie) {
 //                Flogger.atWarning().withCause(ie).log("ER-CP-0002");
