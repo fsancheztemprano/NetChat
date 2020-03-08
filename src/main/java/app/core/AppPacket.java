@@ -142,30 +142,26 @@ public class AppPacket implements Serializable, Cloneable {
     }
 
     public enum ProtocolSignal implements Serializable {
-        HEARTBEAT,
         SERVER_BROADCAST,
-        UNAUTHORIZED_REQUEST,
+        SERVER_ANNOUNCE_SHUTDOWN,
 
-        CLIENT_LOGIN_REQUEST,
-        AUTH_RESPONSE,
-        CLIENT_LOGOUT_REQUEST,
-
-        NEW_MESSAGE,
-
-        SERVER_SHUTDOWN,
-
-
-        CLIENT_PM,
-        CLIENT_PM_ACK,
-        CLIENT_GROUP_MSG,
-        CLIENT_REQUEST_USER_LIST,
-        CLIENT_REQUEST_GROUP_LIST,
-
-        CLIENT_REQUEST_NEW_GROUP,
+        SERVER_RESPONSE_UNAUTHORIZED_REQUEST,
+        SERVER_RESPONSE_AUTH,
+        SERVER_RESPONSE_NEW_GROUP_DENIED,
 
         SERVER_SEND_USER_LIST,
         SERVER_SEND_GROUP_LIST,
 
-        SERVER_RESPONSE_NEW_GROUP_DENIED
+        CLIENT_REQUEST_LOGIN,
+        CLIENT_REQUEST_LOGOUT,
+        CLIENT_REQUEST_USER_LIST,
+        CLIENT_REQUEST_NEW_GROUP,
+        CLIENT_REQUEST_GROUP_LIST,
+
+        CLIENT_SEND_PM,
+        CLIENT_SENT_PM_ACK,
+        CLIENT_SEND_GROUP_MSG,
+
+        HEARTBEAT
     }
 }

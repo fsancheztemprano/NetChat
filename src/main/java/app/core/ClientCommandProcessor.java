@@ -15,20 +15,20 @@ public class ClientCommandProcessor extends AbstractCommandProcessor {
     @Override
     protected void processCommand(@Nonnull AppPacket appPacket) {
         switch (appPacket.getSignal()) {
-            case UNAUTHORIZED_REQUEST:
+            case SERVER_RESPONSE_UNAUTHORIZED_REQUEST:
                 socketManager.log("Unauthorized Request");
                 break;
-            case AUTH_RESPONSE:
+            case SERVER_RESPONSE_AUTH:
                 socketManager.setSessionID(appPacket.getAuth());
                 socketManager.getSocketEventBus().post(new ClientLoginResponseEvent(appPacket.getAuth()));
                 break;
             case SERVER_SEND_USER_LIST:
                 socketManager.getSocketEventBus().post(new ClientUserListEvent(appPacket.getList()));
                 break;
-            case CLIENT_PM:
+            case CLIENT_SEND_PM:
                 socketManager.getSocketEventBus().post(new ClientPmEvent(false, appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
                 break;
-            case CLIENT_PM_ACK:
+            case CLIENT_SENT_PM_ACK:
                 socketManager.getSocketEventBus().post(new ClientPmEvent(true, appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
                 break;
             default:

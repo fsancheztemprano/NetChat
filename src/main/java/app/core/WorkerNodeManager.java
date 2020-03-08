@@ -59,16 +59,15 @@ public class WorkerNodeManager extends AbstractNodeManager {
         socketEventBus.post(new WorkerStatusEvent(this, active));
     }
 
-    public void sendAuthApproval(boolean approved) {
-        AppPacket authResponsePacket = AppPacket.ofType(ProtocolSignal.AUTH_RESPONSE);
-        authResponsePacket.setAuth(approved ? getSessionID() : -1);
-        queueTransmission(authResponsePacket);
+    public void sendAuthResponse(boolean approved) {
+        queueTransmission(AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_AUTH)
+                                   .setAuth(approved ? getSessionID() : -1));
     }
 
     //only AUTH_RESPONSE delivers sessionID, others return serverID
     @Override
     public synchronized boolean queueTransmission(@Nonnull AppPacket appPacket) {
-        if (appPacket.getSignal() != ProtocolSignal.AUTH_RESPONSE) {
+        if (appPacket.getSignal() != ProtocolSignal.SERVER_RESPONSE_AUTH) {
             appPacket.setAuth(serverID);
         }
         return super.queueTransmission(appPacket);

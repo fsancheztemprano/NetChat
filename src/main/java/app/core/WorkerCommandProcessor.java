@@ -20,12 +20,12 @@ public class WorkerCommandProcessor extends AbstractCommandProcessor {
 
     @Override
     protected void processCommand(AppPacket appPacket) {
-        if (appPacket.getSignal() == ProtocolSignal.CLIENT_LOGIN_REQUEST || appPacket.getSignal() == ProtocolSignal.HEARTBEAT || appPacket.getAuth() == managerID) {
+        if (appPacket.getSignal() == ProtocolSignal.CLIENT_REQUEST_LOGIN || appPacket.getSignal() == ProtocolSignal.HEARTBEAT || appPacket.getAuth() == managerID) {
             switch (appPacket.getSignal()) {
-                case CLIENT_LOGIN_REQUEST:
+                case CLIENT_REQUEST_LOGIN:
                     serverEventBus.post(new WorkerLoginEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getUsername(), appPacket.getPassword()));
                     break;
-                case CLIENT_LOGOUT_REQUEST:
+                case CLIENT_REQUEST_LOGOUT:
                     serverEventBus.post(new WorkerLoginEvent((WorkerNodeManager) appPacket.getHandler()));
                     break;
                 case CLIENT_REQUEST_USER_LIST:
@@ -34,14 +34,14 @@ public class WorkerCommandProcessor extends AbstractCommandProcessor {
                 case CLIENT_REQUEST_GROUP_LIST:
                     serverEventBus.post(new WorkerGroupListEvent((WorkerNodeManager) appPacket.getHandler()));
                     break;
-                case CLIENT_PM:
+                case CLIENT_SEND_PM:
                     serverEventBus.post(new WorkerPrivateMessageEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getDestiny(), appPacket.getMessage()));
                     break;
                 case CLIENT_REQUEST_NEW_GROUP:
 //                    serverEventBus.post(new );
                     break;
                 default:
-                    socketManager.queueTransmission(AppPacket.ofType(ProtocolSignal.UNAUTHORIZED_REQUEST));
+                    socketManager.queueTransmission(AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_UNAUTHORIZED_REQUEST));
                     break;
             }
         }

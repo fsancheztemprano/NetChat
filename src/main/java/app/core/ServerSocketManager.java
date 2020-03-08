@@ -164,8 +164,8 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
                            .setMessage(message));
     }
 
-    public void sendAuthApproval(final long sessionID, final boolean validated) {
-        workerList.get(sessionID).sendAuthApproval(validated);
+    public void sendAuthResponse(final long sessionID, final boolean validated) {
+        workerList.get(sessionID).sendAuthResponse(validated);
     }
 
     public void transmitTo(final Set<Long> sessionIDs, final AppPacket appPacket) {

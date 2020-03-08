@@ -56,6 +56,10 @@ public class ChatService {
         chatServer.transmitTo(new HashSet<>(sessionMap.keySet()), getUserListAppPacket());
     }
 
+    private void broadcastGroupList() {
+        chatServer.transmitTo(new HashSet<>(sessionMap.keySet()), getGroupListAppPacket());
+    }
+
     private void transmitUserList(long id) {
         chatServer.transmitTo(id, getUserListAppPacket());
     }
@@ -73,11 +77,8 @@ public class ChatService {
     }
 
     private AppPacket getGroupListAppPacket() {
-        Stream<String> groupNameStream = sessionMap.values().stream()
-                                                   .map(User::getUsername)
-                                                   .distinct();
         return AppPacket.ofType(ProtocolSignal.SERVER_SEND_GROUP_LIST)
-                        .setList(groupNameStream.toArray(String[]::new));
+                        .setList(groupsMultimap.keys().toArray(new String[0]));
     }
 
     public Set<Long> getUsernameSessionIDs(String username) {
@@ -91,26 +92,28 @@ public class ChatService {
 
     @Subscribe
     public void validateLoginRequest(WorkerLoginEvent workerLoginEvent) {
-
         boolean validated = false;
-        String reHashedPass = HashTools.getSha256(workerLoginEvent.getHashedPassword());
+        if (!(workerLoginEvent.getUsername().trim().length() < 5) && !workerLoginEvent.getUsername().trim().equalsIgnoreCase("servidor")) {
 
-        User receivedUserDetails = new User(workerLoginEvent.getUsername(), reHashedPass);
-        User existingUser = userRepo.putIfAbsent(workerLoginEvent.getUsername(), receivedUserDetails);
+            String reHashedPass = HashTools.getSha256(workerLoginEvent.getHashedPassword());
+            User receivedUserDetails = new User(workerLoginEvent.getUsername(), reHashedPass);
+            User existingUser = userRepo.putIfAbsent(workerLoginEvent.getUsername(), receivedUserDetails);
 
-        if (existingUser == null) {                                             // new user
-            validated = true;
-            sessionMap.put(workerLoginEvent.getSessionID(), receivedUserDetails);
-        } else if (existingUser.getPassword().equals(reHashedPass)) {           // receivedUser isValid
-            validated = true;
-            sessionMap.put(workerLoginEvent.getSessionID(), existingUser);
+            if (existingUser == null) {                                             // new user
+                validated = true;
+                sessionMap.put(workerLoginEvent.getSessionID(), receivedUserDetails);
+            } else if (existingUser.getPassword().equals(reHashedPass)) {           // receivedUser isValid
+                validated = true;
+                sessionMap.put(workerLoginEvent.getSessionID(), existingUser);
+            }
         }
         chatServer.getSocketEventBus().post(sessionMap.toString());
-        chatServer.sendAuthApproval(workerLoginEvent.getSessionID(), validated);
+        chatServer.sendAuthResponse(workerLoginEvent.getSessionID(), validated);
 
         if (validated) {
             broadcastUserList();
         }
+
     }
 
     @Subscribe
@@ -142,13 +145,13 @@ public class ChatService {
             return;
 
         chatServer.transmitTo(destinySessions,
-                              AppPacket.ofType(ProtocolSignal.CLIENT_PM)
+                              AppPacket.ofType(ProtocolSignal.CLIENT_SEND_PM)
                                        .setUsername(origin.getUsername())
                                        .setDestiny(pmEvent.getDestiny())
                                        .setMessage(pmEvent.getMessage()));
 
         chatServer.transmitTo(originSessions,
-                              AppPacket.ofType(ProtocolSignal.CLIENT_PM_ACK)
+                              AppPacket.ofType(ProtocolSignal.CLIENT_SENT_PM_ACK)
                                        .setUsername(origin.getUsername())
                                        .setDestiny(pmEvent.getDestiny())
                                        .setMessage(pmEvent.getMessage()));
@@ -156,13 +159,20 @@ public class ChatService {
 
     @Subscribe
     public void newGroupRequest(WorkerNewGroupEvent newGroupEvent) {
-        String newGroupName = newGroupEvent.getNewGroupName();
-        if (newGroupName.length() > 4) {
-
-        } else
+        String newGroupName = newGroupEvent.getNewGroupName().trim();
+        if (newGroupName.length() < 5) {
             chatServer.transmitTo(newGroupEvent.getSessionID(),
                                   AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_NEW_GROUP_DENIED)
                                            .setMessage("Group Name too short (<5)"));
-
+            return;
+        }
+        if (groupsMultimap.containsKey(newGroupName)) {
+            chatServer.transmitTo(newGroupEvent.getSessionID(),
+                                  AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_NEW_GROUP_DENIED)
+                                           .setMessage("Group name exists"));
+            return;
+        }
+        groupsMultimap.put(newGroupName, "SERVIDOR");
+        broadcastGroupList();
     }
 }
