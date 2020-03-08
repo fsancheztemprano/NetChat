@@ -1,7 +1,8 @@
 package app.ui;
 
 import app.core.ClientFacade;
-import app.core.events.ClientLoginResponseEvent;
+import app.core.events.ClientAlertEvent;
+import app.core.events.ClientLoginSuccessEvent;
 import app.core.events.ClientPmEvent;
 import app.core.events.ClientUserListEvent;
 import app.core.events.SocketStatusEvent;
@@ -287,20 +288,20 @@ public class ClientControl {
     }
 
     @Subscribe
-    public void loginResponseReceived(ClientLoginResponseEvent authResponseEvent) {
-        if (authResponseEvent.getAuth() == -1) {
-            Platform.runLater(() -> {
-                FxDialogs.showError("Auth Failed", "Auth Failed", "Auth Failed");
-                tabChat.setDisable(true);
-            });
-        } else {
-            logOutput("Login Success");
-            Platform.runLater(() -> {
+    public void loginSuccess(ClientLoginSuccessEvent authResponseEvent) {
+        logOutput("Login Success");
+        Platform.runLater(() -> {
 //                FxDialogs.showError("Welcome", "Auth Success", "Login Correct");
-                tabChat.setDisable(false);
-                tabPane.getSelectionModel().select(tabChat);
-            });
-        }
+            tabChat.setDisable(false);
+            tabPane.getSelectionModel().select(tabChat);
+        });
+    }
+
+    @Subscribe
+    public void alertReceived(ClientAlertEvent alertEvent) {
+        Platform.runLater(() -> {
+            FxDialogs.showWarning("Alert", "Server Alert", alertEvent.getAlertMessage());
+        });
     }
 
     @Subscribe

@@ -15,6 +15,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import tools.log.Flogger;
@@ -134,7 +135,6 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
     }
 
 
-
     //Subscribe methods listening to workers
     @Subscribe
     public void workerStatusChange(WorkerStatusEvent workerStatusEvent) {
@@ -154,31 +154,72 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
         getSocketEventBus().post(output);
     }
 
-    public void broadcast(AppPacket appPacket) {
-        workerList.forEachValue(1, workerSocketManager -> workerSocketManager.queueTransmission(appPacket));
-    }
-
-    public void queueServerBroadcast(String message) {
-        broadcast(AppPacket.ofType(ProtocolSignal.SERVER_BROADCAST)
-                           .setUsername("SERVER")
-                           .setMessage(message));
-    }
-
-    public void sendAuthResponse(final long sessionID, final boolean validated) {
-        workerList.get(sessionID).sendAuthResponse(validated);
-    }
-
-    public void transmitTo(final Set<Long> sessionIDs, final AppPacket appPacket) {
+    private void transmitTo(final Set<Long> sessionIDs, final AppPacket appPacket) {
         sessionIDs.forEach(sessionID -> {
             transmitTo(sessionID, appPacket);
         });
     }
 
-    public void transmitTo(final long sessionID, final AppPacket appPacket) {
+    private void transmitTo(final long sessionID, final AppPacket appPacket) {
         new Thread(() -> {
             final WorkerNodeManager worker = workerList.get(sessionID);
             if (worker != null)
                 worker.queueTransmission(appPacket);
         }).start();
+    }
+
+    public void broadcast(final AppPacket appPacket) {
+        transmitTo(new HashSet<>(workerList.keySet()), appPacket);
+    }
+
+    public void broadcastMessage(String message) {
+        broadcast(AppPacket.ofType(ProtocolSignal.SERVER_BROADCAST)
+                           .setUsername("SERVER")
+                           .setMessage(message));
+    }
+
+    public void sendLoginSuccess(final long sessionID) {
+        transmitTo(sessionID, AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_LOGIN_SUCCESS)
+                                       .setAuth(sessionID));
+    }
+
+    public void sendAlertMessage(long sessionID, String alertMessage) {
+        transmitTo(sessionID,
+                   AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_ALERT_MESSAGE)
+                            .setMessage(alertMessage));
+    }
+
+    public void broadcastUserList(String[] usernameList) {
+        broadcast(AppPacket.ofType(ProtocolSignal.SERVER_SEND_USER_LIST)
+                           .setList(usernameList));
+    }
+
+    public void broadcastGroupList(String[] groupList) {
+        broadcast(AppPacket.ofType(ProtocolSignal.SERVER_SEND_GROUP_LIST)
+                           .setList(groupList));
+    }
+
+    public void sendUserList(long id, String[] usernameList) {
+        transmitTo(id, AppPacket.ofType(ProtocolSignal.SERVER_SEND_GROUP_LIST)
+                                .setList(usernameList));
+    }
+
+    public void sendGroupList(long id, String[] groupList) {
+        transmitTo(id, AppPacket.ofType(ProtocolSignal.SERVER_SEND_GROUP_LIST)
+                                .setList(groupList));
+    }
+
+    public void sendPMAck(Set<Long> originSessions, String username, String destiny, String message) {
+        transmitTo(originSessions, AppPacket.ofType(ProtocolSignal.CLIENT_SENT_PM_ACK)
+                                            .setUsername(username)
+                                            .setDestiny(destiny)
+                                            .setMessage(message));
+    }
+
+    public void sendPM(Set<Long> destinySessions, String username, String destiny, String message) {
+        transmitTo(destinySessions, AppPacket.ofType(ProtocolSignal.CLIENT_SEND_PM)
+                                             .setUsername(username)
+                                             .setDestiny(destiny)
+                                             .setMessage(message));
     }
 }

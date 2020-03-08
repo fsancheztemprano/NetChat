@@ -16,6 +16,7 @@ public class ClientNodeManager extends AbstractNodeManager {
 
     public ClientNodeManager() {
         super(new Socket());
+        setSessionID(-1);
         commandProcessor = new ClientCommandProcessor(this);
     }
 

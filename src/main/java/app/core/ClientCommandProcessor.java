@@ -1,6 +1,8 @@
 package app.core;
 
-import app.core.events.ClientLoginResponseEvent;
+import app.core.events.ClientAlertEvent;
+import app.core.events.ClientGroupListEvent;
+import app.core.events.ClientLoginSuccessEvent;
 import app.core.events.ClientPmEvent;
 import app.core.events.ClientUserListEvent;
 import javax.annotation.Nonnull;
@@ -8,30 +10,40 @@ import javax.annotation.Nonnull;
 public class ClientCommandProcessor extends AbstractCommandProcessor {
 
     public ClientCommandProcessor(AbstractNodeManager socketManager) {
-        super(socketManager);
+        super(socketManager, socketManager.getSocketEventBus());
     }
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
     protected void processCommand(@Nonnull AppPacket appPacket) {
         switch (appPacket.getSignal()) {
-            case SERVER_RESPONSE_UNAUTHORIZED_REQUEST:
+            case SERVER_RESPONSE_UNRECOGNIZED_REQUEST:
                 socketManager.log("Unauthorized Request");
                 break;
-            case SERVER_RESPONSE_AUTH:
-                socketManager.setSessionID(appPacket.getAuth());
-                socketManager.getSocketEventBus().post(new ClientLoginResponseEvent(appPacket.getAuth()));
+            case SERVER_RESPONSE_LOGIN_SUCCESS:
+                if (appPacket.getAuth() != -1) {
+                    socketManager.setSessionID(appPacket.getAuth());
+                    eventBus.post(new ClientLoginSuccessEvent());
+                } else
+                    eventBus.post(new ClientAlertEvent("Login Failed"));
+                break;
+            case SERVER_RESPONSE_ALERT_MESSAGE:
+                eventBus.post(new ClientAlertEvent(appPacket.getMessage()));
                 break;
             case SERVER_SEND_USER_LIST:
-                socketManager.getSocketEventBus().post(new ClientUserListEvent(appPacket.getList()));
+                eventBus.post(new ClientUserListEvent(appPacket.getList()));
                 break;
             case CLIENT_SEND_PM:
-                socketManager.getSocketEventBus().post(new ClientPmEvent(false, appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
+                eventBus.post(new ClientPmEvent(false, appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
                 break;
             case CLIENT_SENT_PM_ACK:
-                socketManager.getSocketEventBus().post(new ClientPmEvent(true, appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
+                eventBus.post(new ClientPmEvent(true, appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
+                break;
+            case SERVER_SEND_GROUP_LIST:
+                eventBus.post(new ClientGroupListEvent(appPacket.getList()));
                 break;
             default:
+                eventBus.post(appPacket.getSignal().toString());
                 break;
         }
     }

@@ -13,7 +13,7 @@ public class ServerCli {
         String userin = "";
         while (!userin.equalsIgnoreCase("exit") && ServerFacade.inst().isServerAlive()) {
             userin = scanner.nextLine();
-            ServerFacade.inst().getServerManager().queueServerBroadcast(userin);
+            ServerFacade.inst().getServerManager().broadcastMessage(userin);
         }
         new Thread(() -> ServerFacade.inst().stopServer()).start();
 

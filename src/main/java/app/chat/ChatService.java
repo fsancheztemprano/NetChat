@@ -1,7 +1,5 @@
 package app.chat;
 
-import app.core.AppPacket;
-import app.core.AppPacket.ProtocolSignal;
 import app.core.ServerSocketManager;
 import app.core.events.WorkerLoginEvent;
 import app.core.events.WorkerLogoutEvent;
@@ -12,12 +10,10 @@ import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.eventbus.Subscribe;
-import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import tools.HashTools;
 
 public class ChatService {
@@ -53,32 +49,30 @@ public class ChatService {
     }
 
     private void broadcastUserList() {
-        chatServer.transmitTo(new HashSet<>(sessionMap.keySet()), getUserListAppPacket());
+        chatServer.broadcastUserList(getUserListArray());
     }
 
     private void broadcastGroupList() {
-        chatServer.transmitTo(new HashSet<>(sessionMap.keySet()), getGroupListAppPacket());
+        chatServer.broadcastGroupList(getGroupListArray());
     }
 
-    private void transmitUserList(long id) {
-        chatServer.transmitTo(id, getUserListAppPacket());
+    private void transmitUserList(long sessionID) {
+        chatServer.sendUserList(sessionID, getUserListArray());
     }
 
-    private void transmitGroupList(long id) {
-        chatServer.transmitTo(id, getGroupListAppPacket());
+    private void transmitGroupList(long sessionID) {
+        chatServer.sendGroupList(sessionID, getGroupListArray());
     }
 
-    private AppPacket getUserListAppPacket() {
-        Stream<String> usernameStream = sessionMap.values().stream()
-                                                  .map(User::getUsername)
-                                                  .distinct();
-        return AppPacket.ofType(ProtocolSignal.SERVER_SEND_USER_LIST)
-                        .setList(usernameStream.toArray(String[]::new));
+    private String[] getUserListArray() {
+        return sessionMap.values().stream()
+                         .map(User::getUsername)
+                         .distinct()
+                         .toArray(String[]::new);
     }
 
-    private AppPacket getGroupListAppPacket() {
-        return AppPacket.ofType(ProtocolSignal.SERVER_SEND_GROUP_LIST)
-                        .setList(groupsMultimap.keys().toArray(new String[0]));
+    private String[] getGroupListArray() {
+        return groupsMultimap.keys().toArray(new String[0]);
     }
 
     public Set<Long> getUsernameSessionIDs(String username) {
@@ -107,13 +101,12 @@ public class ChatService {
                 sessionMap.put(workerLoginEvent.getSessionID(), existingUser);
             }
         }
-        chatServer.getSocketEventBus().post(sessionMap.toString());
-        chatServer.sendAuthResponse(workerLoginEvent.getSessionID(), validated);
 
         if (validated) {
+            chatServer.sendLoginSuccess(workerLoginEvent.getSessionID());
             broadcastUserList();
-        }
-
+        } else
+            chatServer.sendAlertMessage(workerLoginEvent.getSessionID(), "Login Denied");
     }
 
     @Subscribe
@@ -141,35 +134,23 @@ public class ChatService {
         if (originSessions.size() < 1)
             return;
         Set<Long> destinySessions = getUsernameSessionIDs(pmEvent.getDestiny());
-        if (destinySessions.size() < 1)
+        if (destinySessions.size() < 1) {
+            chatServer.sendAlertMessage(pmEvent.getSessionID(), "No recepient found");
             return;
-
-        chatServer.transmitTo(destinySessions,
-                              AppPacket.ofType(ProtocolSignal.CLIENT_SEND_PM)
-                                       .setUsername(origin.getUsername())
-                                       .setDestiny(pmEvent.getDestiny())
-                                       .setMessage(pmEvent.getMessage()));
-
-        chatServer.transmitTo(originSessions,
-                              AppPacket.ofType(ProtocolSignal.CLIENT_SENT_PM_ACK)
-                                       .setUsername(origin.getUsername())
-                                       .setDestiny(pmEvent.getDestiny())
-                                       .setMessage(pmEvent.getMessage()));
+        }
+        chatServer.sendPM(destinySessions, origin.getUsername(), pmEvent.getDestiny(), pmEvent.getMessage());
+        chatServer.sendPMAck(originSessions, origin.getUsername(), pmEvent.getDestiny(), pmEvent.getMessage());
     }
 
     @Subscribe
     public void newGroupRequest(WorkerNewGroupEvent newGroupEvent) {
         String newGroupName = newGroupEvent.getNewGroupName().trim();
         if (newGroupName.length() < 5) {
-            chatServer.transmitTo(newGroupEvent.getSessionID(),
-                                  AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_NEW_GROUP_DENIED)
-                                           .setMessage("Group Name too short (<5)"));
+            chatServer.sendAlertMessage(newGroupEvent.getSessionID(), "Group Name too short (<5)");
             return;
         }
         if (groupsMultimap.containsKey(newGroupName)) {
-            chatServer.transmitTo(newGroupEvent.getSessionID(),
-                                  AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_NEW_GROUP_DENIED)
-                                           .setMessage("Group name exists"));
+            chatServer.sendAlertMessage(newGroupEvent.getSessionID(), "Group name exists");
             return;
         }
         groupsMultimap.put(newGroupName, "SERVIDOR");

@@ -1,6 +1,7 @@
 package app.core;
 
 import app.Globals;
+import com.google.common.eventbus.EventBus;
 import java.net.SocketException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -13,8 +14,11 @@ public abstract class AbstractCommandProcessor extends Activable implements Runn
 
     protected final AbstractNodeManager socketManager;
 
-    public AbstractCommandProcessor(AbstractNodeManager socketManager) {
+    protected final EventBus eventBus;
+
+    public AbstractCommandProcessor(AbstractNodeManager socketManager, EventBus eventBus) {
         this.socketManager = socketManager;
+        this.eventBus      = eventBus;
     }
 
     @Override
