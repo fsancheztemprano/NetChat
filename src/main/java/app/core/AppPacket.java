@@ -158,6 +158,7 @@ public class AppPacket implements Serializable, Cloneable {
         CLIENT_REQUEST_USER_LIST,
         CLIENT_REQUEST_NEW_GROUP,
         CLIENT_REQUEST_GROUP_LIST,
+        CLIENT_REQUEST_GROUP_JOIN,
 
         CLIENT_SEND_PM,
         CLIENT_SENT_PM_ACK,
