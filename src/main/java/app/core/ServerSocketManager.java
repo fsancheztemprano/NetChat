@@ -155,9 +155,7 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
     }
 
     private void transmitTo(final Set<Long> sessionIDs, final AppPacket appPacket) {
-        sessionIDs.forEach(sessionID -> {
-            transmitTo(sessionID, appPacket);
-        });
+        sessionIDs.forEach(sessionID -> transmitTo(sessionID, appPacket));
     }
 
     private void transmitTo(final long sessionID, final AppPacket appPacket) {
@@ -221,5 +219,13 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
                                              .setUsername(username)
                                              .setDestiny(destiny)
                                              .setMessage(message));
+    }
+
+    public void sendGroupUserList(long sessionID, String groupName, String[] groupUserList) {
+        transmitTo(sessionID, AppPacket.ofType(ProtocolSignal.SERVER_SEND_GROUP_USER_LIST).setDestiny(groupName).setList(groupUserList));
+    }
+
+    public void broadcastGroupUserList(Set<Long> sessionIDs, String groupName, String[] groupUserList) {
+        transmitTo(sessionIDs, AppPacket.ofType(ProtocolSignal.SERVER_SEND_GROUP_USER_LIST).setDestiny(groupName).setList(groupUserList));
     }
 }

@@ -2,6 +2,7 @@ package app.core;
 
 import app.core.AppPacket.ProtocolSignal;
 import app.core.events.WorkerGroupListEvent;
+import app.core.events.WorkerJoinGroupEvent;
 import app.core.events.WorkerLoginEvent;
 import app.core.events.WorkerNewGroupEvent;
 import app.core.events.WorkerPrivateMessageEvent;
@@ -37,6 +38,9 @@ public class WorkerCommandProcessor extends AbstractCommandProcessor {
                     break;
                 case CLIENT_REQUEST_NEW_GROUP:
                     eventBus.post(new WorkerNewGroupEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getMessage()));
+                    break;
+                case CLIENT_REQUEST_GROUP_JOIN:
+                    eventBus.post(new WorkerJoinGroupEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getDestiny()));
                     break;
                 default:
                     socketManager.queueTransmission(AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_UNRECOGNIZED_REQUEST));

@@ -1,6 +1,7 @@
 package app.chat;
 
 import app.core.ServerSocketManager;
+import app.core.events.WorkerJoinGroupEvent;
 import app.core.events.WorkerLoginEvent;
 import app.core.events.WorkerLogoutEvent;
 import app.core.events.WorkerNewGroupEvent;
@@ -11,6 +12,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.eventbus.Subscribe;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -37,7 +39,7 @@ public class ChatService {
 
     private final ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login) TODO: move to Persistence layer
     private final ConcurrentHashMap<Long, User> sessionMap = new ConcurrentHashMap<>();
-    private final SetMultimap<String, String> groupsMultimap = Multimaps.synchronizedSetMultimap(MultimapBuilder.SetMultimapBuilder.hashKeys().hashSetValues().build());
+    private final SetMultimap<String, Long> groupsMultimap = Multimaps.synchronizedSetMultimap(MultimapBuilder.SetMultimapBuilder.hashKeys().hashSetValues().build());
     private ServerSocketManager chatServer = null;
 
     public ServerSocketManager getChatServer() {
@@ -64,6 +66,10 @@ public class ChatService {
         chatServer.sendGroupList(sessionID, getGroupListArray());
     }
 
+    private void broadcastGroupUserList(String groupName) {
+        chatServer.broadcastGroupUserList(groupsMultimap.get(groupName), groupName, getGroupUserList(groupName));
+    }
+
     private String[] getUserListArray() {
         return sessionMap.values().stream()
                          .map(User::getUsername)
@@ -73,6 +79,13 @@ public class ChatService {
 
     private String[] getGroupListArray() {
         return groupsMultimap.keys().toArray(new String[0]);
+    }
+
+    private String[] getGroupUserList(String groupName) {
+        return groupsMultimap.get(groupName).stream()
+                             .map(l -> sessionMap.get(l).getUsername())
+                             .distinct()
+                             .toArray(String[]::new);
     }
 
     public Set<Long> getUsernameSessionIDs(String username) {
@@ -153,7 +166,31 @@ public class ChatService {
             chatServer.sendAlertMessage(newGroupEvent.getSessionID(), "Group name exists");
             return;
         }
-        groupsMultimap.put(newGroupName, "SERVIDOR");
+        groupsMultimap.put(newGroupName, -1L);
         broadcastGroupList();
     }
+
+    @Subscribe
+    public void joinGroupRequest(WorkerJoinGroupEvent joinGroupEvent) {
+        String joinGroup = joinGroupEvent.getGroupName().trim();
+        if (joinGroup.length() < 5) {
+            chatServer.sendAlertMessage(joinGroupEvent.getSessionID(), "Group Name too short (<5)");
+            return;
+        }
+        if (!groupsMultimap.containsKey(joinGroup)) {
+            chatServer.sendAlertMessage(joinGroupEvent.getSessionID(), "Group does not exist");
+            return;
+        }
+        groupsMultimap.put(joinGroup, joinGroupEvent.getSessionID());
+        broadcastGroupUserList(joinGroup);
+    }
+
+    private Optional<String> getUsername(final long sessionID) {
+        User user = sessionMap.get(sessionID);
+        if (user == null)
+            return Optional.empty();
+        else
+            return Optional.of(user.getUsername());
+    }
+
 }
