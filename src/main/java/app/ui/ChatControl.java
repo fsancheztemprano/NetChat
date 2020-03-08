@@ -34,13 +34,9 @@ public class ChatControl extends AbstractChatControl {
     @FXML
     @Override
     public void sendMessageAction(ActionEvent event) {
-        String draft = fieldMessageDraft.getText();
+        String draft = fieldMessageDraft.getText().trim();
         if (draft.length() > 0)
-            ClientFacade.inst().sendPM(title, draft);
-
+            ClientFacade.inst().sendPrivateMessage(title, draft);
     }
 
-    public void newMessage(String origin, String message) {
-        areaChatLog.appendText(origin + ": " + message + "\n");
-    }
 }

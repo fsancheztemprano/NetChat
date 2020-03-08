@@ -3,9 +3,10 @@ package app.ui;
 import app.core.ClientFacade;
 import app.core.events.ClientAlertEvent;
 import app.core.events.ClientGroupListEvent;
+import app.core.events.ClientGroupMessageEvent;
 import app.core.events.ClientGroupUserListEvent;
 import app.core.events.ClientLoginSuccessEvent;
-import app.core.events.ClientPmEvent;
+import app.core.events.ClientPrivateMessageEvent;
 import app.core.events.ClientUserListEvent;
 import app.core.events.SocketStatusEvent;
 import com.google.common.eventbus.Subscribe;
@@ -132,6 +133,8 @@ public class ClientControl {
     private final HashMap<String, ChatControl> openChats = new HashMap<>();
     private final HashMap<String, ChatGroupControl> openGroups = new HashMap<>();
 
+    private String username = null;
+
     @FXML
     void initialize() {
         assert tabPane != null : "fx:id=\"tabPane\" was not injected: check your FXML file 'ClientPane.fxml'.";
@@ -214,8 +217,8 @@ public class ClientControl {
 
     @FXML
     void btnLoginAction(ActionEvent event) {
-        String username = fieldLoginUsername.getText();
-        String password = fieldLoginPassword.getText();
+        String username = fieldLoginUsername.getText().trim();
+        String password = fieldLoginPassword.getText().trim();
         if (username.length() < 4 || password.length() < 4) {
             FxDialogs.showError("User Pass Error", "User / Pass too short");
             return;
@@ -239,6 +242,9 @@ public class ClientControl {
     void btnLogOutAction(ActionEvent actionEvent) {
         ClientFacade.inst().logout();
         cleanUpChatPane();
+        fieldLoginUsername.setDisable(false);
+        fieldLoginPassword.setDisable(false);
+        username = null;
     }
 
     @FXML
@@ -324,10 +330,13 @@ public class ClientControl {
     @Subscribe
     public void loginSuccess(ClientLoginSuccessEvent authResponseEvent) {
         logOutput("Login Success");
+        username = fieldLoginUsername.getText().trim();
         Platform.runLater(() -> {
 //                FxDialogs.showError("Welcome", "Auth Success", "Login Correct");
             tabChat.setDisable(false);
             tabPane.getSelectionModel().select(tabChat);
+            fieldLoginUsername.setDisable(true);
+            fieldLoginPassword.setDisable(true);
         });
     }
 
@@ -378,16 +387,19 @@ public class ClientControl {
     }
 
     @Subscribe
-    public void pmReceived(ClientPmEvent pmEvent) {
+    public void privateMessageReceived(ClientPrivateMessageEvent privateMessageEvent) {
         String tabName;
-        if (pmEvent.isAck()) {
-            tabName = pmEvent.getDestiny();
+        String author;
+        if (privateMessageEvent.getOrigin().equals("ACK")) {
+            tabName = privateMessageEvent.getDestiny();
+            author  = username != null ? username : "n/a";
         } else {
-            tabName = pmEvent.getOrigin();
+            tabName = author = privateMessageEvent.getOrigin();
+
         }
         activateUserTab(tabName);
         ChatControl chatControl = openChats.get(tabName);
-        chatControl.newMessage(pmEvent.getOrigin(), pmEvent.getMessage());
+        chatControl.newMessageReceived(author, privateMessageEvent.getMessage());
     }
 
     @Subscribe
@@ -396,5 +408,11 @@ public class ClientControl {
         activateGroupTab(groupName);
         ChatGroupControl groupControl = openGroups.get(groupName);
         groupControl.groupUserListUpdate(groupUserListEvent.getUserList());
+    }
+
+    @Subscribe
+    public void groupMessageReceived(ClientGroupMessageEvent groupMessageEvent) {
+        ChatGroupControl groupControl = openGroups.get(groupMessageEvent.getDestinyGroup());
+        groupControl.newMessageReceived(groupMessageEvent.getAuthor(), groupMessageEvent.getMessage());
     }
 }

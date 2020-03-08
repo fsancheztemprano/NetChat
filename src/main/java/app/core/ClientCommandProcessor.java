@@ -2,9 +2,10 @@ package app.core;
 
 import app.core.events.ClientAlertEvent;
 import app.core.events.ClientGroupListEvent;
+import app.core.events.ClientGroupMessageEvent;
 import app.core.events.ClientGroupUserListEvent;
 import app.core.events.ClientLoginSuccessEvent;
-import app.core.events.ClientPmEvent;
+import app.core.events.ClientPrivateMessageEvent;
 import app.core.events.ClientUserListEvent;
 import javax.annotation.Nonnull;
 
@@ -34,17 +35,18 @@ public class ClientCommandProcessor extends AbstractCommandProcessor {
             case SERVER_SEND_USER_LIST:
                 eventBus.post(new ClientUserListEvent(appPacket.getList()));
                 break;
-            case CLIENT_SEND_PM:
-                eventBus.post(new ClientPmEvent(false, appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
-                break;
-            case CLIENT_SENT_PM_ACK:
-                eventBus.post(new ClientPmEvent(true, appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
+            case SERVER_PIPE_PRIVATE_MESSAGE:
+                eventBus.post(new ClientPrivateMessageEvent(appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
                 break;
             case SERVER_SEND_GROUP_LIST:
                 eventBus.post(new ClientGroupListEvent(appPacket.getList()));
                 break;
             case SERVER_SEND_GROUP_USER_LIST:
                 eventBus.post(new ClientGroupUserListEvent(appPacket.getDestiny(), appPacket.getList()));
+                break;
+            case SERVER_PIPE_GROUP_MESSAGE:
+                eventBus.post(new ClientGroupMessageEvent(appPacket.getUsername(), appPacket.getDestiny(), appPacket.getMessage()));
+                break;
             default:
                 eventBus.post(appPacket.getSignal().toString());
                 break;

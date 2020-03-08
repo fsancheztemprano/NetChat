@@ -2,6 +2,7 @@ package app.core;
 
 import app.core.AppPacket.ProtocolSignal;
 import app.core.events.WorkerGroupListEvent;
+import app.core.events.WorkerGroupMessageEvent;
 import app.core.events.WorkerJoinGroupEvent;
 import app.core.events.WorkerLoginEvent;
 import app.core.events.WorkerNewGroupEvent;
@@ -34,7 +35,7 @@ public class WorkerCommandProcessor extends AbstractCommandProcessor {
                 case CLIENT_REQUEST_GROUP_LIST:
                     eventBus.post(new WorkerGroupListEvent((WorkerNodeManager) appPacket.getHandler()));
                     break;
-                case CLIENT_SEND_PM:
+                case CLIENT_SEND_PRIVATE_MESSAGE:
                     eventBus.post(new WorkerPrivateMessageEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getDestiny(), appPacket.getMessage()));
                     break;
                 case CLIENT_REQUEST_NEW_GROUP:
@@ -45,6 +46,9 @@ public class WorkerCommandProcessor extends AbstractCommandProcessor {
                     break;
                 case CLIENT_REQUEST_GROUP_QUIT:
                     eventBus.post(new WorkerQuitGroupEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getDestiny()));
+                    break;
+                case CLIENT_SEND_GROUP_MESSAGE:
+                    eventBus.post(new WorkerGroupMessageEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getDestiny(), appPacket.getMessage()));
                     break;
                 default:
                     socketManager.queueTransmission(AppPacket.ofType(ProtocolSignal.SERVER_RESPONSE_UNRECOGNIZED_REQUEST));

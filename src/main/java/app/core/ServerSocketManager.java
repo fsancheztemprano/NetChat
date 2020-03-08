@@ -207,15 +207,8 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
                                 .setList(groupList));
     }
 
-    public void sendPMAck(Set<Long> originSessions, String username, String destiny, String message) {
-        transmitTo(originSessions, AppPacket.ofType(ProtocolSignal.CLIENT_SENT_PM_ACK)
-                                            .setUsername(username)
-                                            .setDestiny(destiny)
-                                            .setMessage(message));
-    }
-
-    public void sendPM(Set<Long> destinySessions, String username, String destiny, String message) {
-        transmitTo(destinySessions, AppPacket.ofType(ProtocolSignal.CLIENT_SEND_PM)
+    public void pipePrivateMessage(Set<Long> destinySessions, String username, String destiny, String message) {
+        transmitTo(destinySessions, AppPacket.ofType(ProtocolSignal.SERVER_PIPE_PRIVATE_MESSAGE)
                                              .setUsername(username)
                                              .setDestiny(destiny)
                                              .setMessage(message));
@@ -227,5 +220,12 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
 
     public void broadcastGroupUserList(Set<Long> sessionIDs, String groupName, String[] groupUserList) {
         transmitTo(sessionIDs, AppPacket.ofType(ProtocolSignal.SERVER_SEND_GROUP_USER_LIST).setDestiny(groupName).setList(groupUserList));
+    }
+
+    public void pipeGroupMessage(Set<Long> destinySessions, String author, String destiny, String message) {
+        transmitTo(destinySessions, AppPacket.ofType(ProtocolSignal.SERVER_PIPE_GROUP_MESSAGE)
+                                             .setUsername(author)
+                                             .setDestiny(destiny)
+                                             .setMessage(message));
     }
 }

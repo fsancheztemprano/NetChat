@@ -2,6 +2,7 @@ package app.ui;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -54,4 +55,8 @@ public abstract class AbstractChatControl extends VBox {
 
     @FXML
     public abstract void sendMessageAction(ActionEvent event);
+
+    public void newMessageReceived(String author, String message) {
+        Platform.runLater(() -> areaChatLog.appendText(author + ": " + message + "\n"));
+    }
 }

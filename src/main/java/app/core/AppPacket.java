@@ -154,6 +154,9 @@ public class AppPacket implements Serializable, Cloneable {
         SERVER_SEND_GROUP_LIST,
         SERVER_SEND_GROUP_USER_LIST,
 
+        SERVER_PIPE_PRIVATE_MESSAGE,
+        SERVER_PIPE_GROUP_MESSAGE,
+
         CLIENT_REQUEST_LOGIN,
         CLIENT_REQUEST_LOGOUT,
         CLIENT_REQUEST_USER_LIST,
@@ -162,9 +165,8 @@ public class AppPacket implements Serializable, Cloneable {
         CLIENT_REQUEST_GROUP_JOIN,
         CLIENT_REQUEST_GROUP_QUIT,
 
-        CLIENT_SEND_PM,
-        CLIENT_SENT_PM_ACK,
-        CLIENT_SEND_GROUP_MSG,
+        CLIENT_SEND_PRIVATE_MESSAGE,
+        CLIENT_SEND_GROUP_MESSAGE,
 
         HEARTBEAT
     }

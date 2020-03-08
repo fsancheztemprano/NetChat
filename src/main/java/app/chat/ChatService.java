@@ -2,6 +2,7 @@ package app.chat;
 
 import app.core.ServerSocketManager;
 import app.core.events.WorkerGroupListEvent;
+import app.core.events.WorkerGroupMessageEvent;
 import app.core.events.WorkerJoinGroupEvent;
 import app.core.events.WorkerLoginEvent;
 import app.core.events.WorkerLogoutEvent;
@@ -23,11 +24,16 @@ import tools.HashTools;
 
 public class ChatService {
 
+    private final ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login)
+    private final ConcurrentHashMap<Long, User> sessionMap = new ConcurrentHashMap<>();
+    private final SetMultimap<String, Long> groupsMultimap = Multimaps.synchronizedSetMultimap(MultimapBuilder.SetMultimapBuilder.hashKeys().hashSetValues().build());
+    private ServerSocketManager chatServer = null;
 
-    private static ChatService instance;
 
     private ChatService() {
     }
+
+    private static ChatService instance;
 
     public static ChatService getInstance() {
         if (instance == null) {
@@ -40,17 +46,16 @@ public class ChatService {
         return instance;
     }
 
-    private final ConcurrentHashMap<String, User> userRepo = new ConcurrentHashMap<>(); //Mock user repo (accepts new users on login)
-    private final ConcurrentHashMap<Long, User> sessionMap = new ConcurrentHashMap<>();
-    private final SetMultimap<String, Long> groupsMultimap = Multimaps.synchronizedSetMultimap(MultimapBuilder.SetMultimapBuilder.hashKeys().hashSetValues().build());
-    private ServerSocketManager chatServer = null;
-
-    public ServerSocketManager getChatServer() {
-        return chatServer;
-    }
-
     public void setChatServer(ServerSocketManager chatServer) {
         this.chatServer = chatServer;
+    }
+
+    private Optional<String> getUsername(final long sessionID) {
+        User user = sessionMap.get(sessionID);
+        if (user == null)
+            return Optional.empty();
+        else
+            return Optional.of(user.getUsername());
     }
 
     private void broadcastUserList() {
@@ -102,6 +107,12 @@ public class ChatService {
                          .collect(Collectors.toSet());
     }
 
+    public Set<Long> getGroupSessionIDs(String groupName) {
+        return groupsMultimap.get(groupName).stream()
+                             .filter(l -> l != -1)
+                             .collect(Collectors.toSet());
+    }
+
     @Subscribe
     public void validateLoginRequest(WorkerLoginEvent workerLoginEvent) {
         boolean validated = false;
@@ -144,11 +155,11 @@ public class ChatService {
     }
 
     @Subscribe
-    public void userPmRequest(WorkerPrivateMessageEvent pmEvent) {
-        User origin = sessionMap.get(pmEvent.getSessionID());
-        if (origin == null)
+    public void userPrivateMessageRequest(WorkerPrivateMessageEvent pmEvent) {
+        Optional<String> usernameO = getUsername(pmEvent.getSessionID());
+        if (!usernameO.isPresent())
             return;
-        Set<Long> originSessions = getUsernameSessionIDs(origin.getUsername());
+        Set<Long> originSessions = getUsernameSessionIDs(usernameO.get());
         if (originSessions.size() < 1)
             return;
         Set<Long> destinySessions = getUsernameSessionIDs(pmEvent.getDestiny());
@@ -156,8 +167,9 @@ public class ChatService {
             chatServer.sendAlertMessage(pmEvent.getSessionID(), "No recepient found");
             return;
         }
-        chatServer.sendPM(destinySessions, origin.getUsername(), pmEvent.getDestiny(), pmEvent.getMessage());
-        chatServer.sendPMAck(originSessions, origin.getUsername(), pmEvent.getDestiny(), pmEvent.getMessage());
+        chatServer.pipePrivateMessage(destinySessions, usernameO.get(), "RCV", pmEvent.getMessage());
+        if (!usernameO.get().equals(pmEvent.getDestiny()))
+            chatServer.pipePrivateMessage(originSessions, "ACK", pmEvent.getDestiny(), pmEvent.getMessage());
     }
 
     @Subscribe
@@ -197,12 +209,23 @@ public class ChatService {
         broadcastGroupUserList(joinGroup);
     }
 
-    private Optional<String> getUsername(final long sessionID) {
-        User user = sessionMap.get(sessionID);
-        if (user == null)
-            return Optional.empty();
-        else
-            return Optional.of(user.getUsername());
+    @Subscribe
+    public void userGroupMessageRequest(WorkerGroupMessageEvent groupMessageEvent) {
+        if (!groupsMultimap.get(groupMessageEvent.getDestiny()).contains(groupMessageEvent.getSessionID())) {
+            chatServer.sendAlertMessage(groupMessageEvent.getSessionID(), "You are not on that group (" + groupMessageEvent.getDestiny() + ")");
+            return;
+        }
+        Set<Long> destinySessions = getGroupSessionIDs(groupMessageEvent.getDestiny());
+        if (destinySessions.size() < 1) {
+            chatServer.sendAlertMessage(groupMessageEvent.getSessionID(), "No recepient found");
+            return;
+        }
+        Optional<String> usernameO = getUsername(groupMessageEvent.getSessionID());
+        if (!usernameO.isPresent()) {
+            chatServer.sendAlertMessage(groupMessageEvent.getSessionID(), "No remitent found");
+            return;
+        }
+        chatServer.pipeGroupMessage(destinySessions, usernameO.get(), groupMessageEvent.getDestiny(), groupMessageEvent.getMessage());
     }
 
 }

@@ -86,8 +86,8 @@ public class ClientFacade {
         clientSocketManager.sendGroupListRequest();
     }
 
-    public void sendPM(String username, String draft) {
-        clientSocketManager.sendPM(username, draft);
+    public void sendPrivateMessage(String username, String draft) {
+        clientSocketManager.sendPrivateMessage(username, draft);
     }
 
     public void requestNewGroup(String newGroupName) {
@@ -100,5 +100,10 @@ public class ClientFacade {
 
     public void requestQuitGroup(String selectedGroup) {
         clientSocketManager.requestQuitGroup(selectedGroup);
+    }
+
+    public void sendGroupMessage(String groupName, String message) {
+        clientSocketManager.sendGroupMessage(groupName, message);
+
     }
 }

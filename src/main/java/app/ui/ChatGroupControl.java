@@ -1,5 +1,6 @@
 package app.ui;
 
+import app.core.ClientFacade;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +55,9 @@ public class ChatGroupControl extends AbstractChatControl {
     @FXML
     @Override
     public void sendMessageAction(ActionEvent event) {
-
+        String draft = fieldMessageDraft.getText().trim();
+        if (draft.length() > 0)
+            ClientFacade.inst().sendGroupMessage(title, draft);
     }
 
     public void groupUserListUpdate(String[] userList) {

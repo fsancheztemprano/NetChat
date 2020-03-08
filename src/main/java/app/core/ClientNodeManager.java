@@ -92,8 +92,8 @@ public class ClientNodeManager extends AbstractNodeManager {
         queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_REQUEST_GROUP_LIST));
     }
 
-    public void sendPM(String username, String message) {
-        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_SEND_PM).setDestiny(username).setMessage(message));
+    public void sendPrivateMessage(String username, String message) {
+        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_SEND_PRIVATE_MESSAGE).setDestiny(username).setMessage(message));
     }
 
     public void requestNewGroup(String newGroupName) {
@@ -106,5 +106,9 @@ public class ClientNodeManager extends AbstractNodeManager {
 
     public void requestQuitGroup(String selectedGroup) {
         queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_REQUEST_GROUP_QUIT).setDestiny(selectedGroup));
+    }
+
+    public void sendGroupMessage(String groupName, String message) {
+        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_SEND_GROUP_MESSAGE).setDestiny(groupName).setMessage(message));
     }
 }
