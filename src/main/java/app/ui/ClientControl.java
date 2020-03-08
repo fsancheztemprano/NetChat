@@ -129,6 +129,7 @@ public class ClientControl {
     private final ObservableSet<String> groupsObservableSet = FXCollections.observableSet();
 
     private final HashMap<String, ChatControl> openChats = new HashMap<>();
+    private final HashMap<String, ChatGroupControl> openGroups = new HashMap<>();
 
     @FXML
     void initialize() {
@@ -190,27 +191,9 @@ public class ClientControl {
     }
 
     @FXML
-    void btnOpenChatAction(ActionEvent event) {
-        String selectedUser = listViewUsers.getSelectionModel().getSelectedItem();
-        if (selectedUser != null) {
-            activateTab(selectedUser);
-        }
-
-    }
-
-    private void activateTab(String selectedUser) {
-        Tab tab;
-        if (openChats.containsKey(selectedUser)) {
-            tab = openChats.get(selectedUser).getTab();
-        } else {
-            ChatControl userChat = new ChatControl(selectedUser);
-            tab = userChat.getTab();
-            tab.setOnCloseRequest((a) -> openChats.remove(userChat.getUsername()));
-            openChats.put(selectedUser, userChat);
-            Platform.runLater(() -> tabPaneChats.getTabs().add(tab));
-
-        }
-        tabPaneChats.getSelectionModel().select(tab);
+    void btnExitAction(ActionEvent event) {
+        Platform.exit();
+        System.exit(0);
     }
 
     @FXML
@@ -226,31 +209,6 @@ public class ClientControl {
     @FXML
     void btnDisconnectAction(ActionEvent event) {
         ClientFacade.inst().disconnect();
-    }
-
-    @FXML
-    void btnExitAction(ActionEvent event) {
-        Platform.exit();
-        System.exit(0);
-    }
-
-
-    @FXML
-    void btnGroupsEnterAction(ActionEvent event) {
-
-    }
-
-    @FXML
-    void btnGroupsNewAction(ActionEvent event) {
-        String newGroupName = FxDialogs.showTextInput("Nuevo Grupo", "Introduce un nombre para el nuevo grupo");
-        if (newGroupName != null && newGroupName.length() > 0) {
-            ClientFacade.inst().requestNewGroup(newGroupName);
-        }
-    }
-
-    @FXML
-    void btnGroupsRemoveAction(ActionEvent event) {
-
     }
 
     @FXML
@@ -282,6 +240,66 @@ public class ClientControl {
         cleanUpChatPane();
     }
 
+    @FXML
+    void btnOpenChatAction(ActionEvent event) {
+        String selectedUser = listViewUsers.getSelectionModel().getSelectedItem();
+        if (selectedUser != null) {
+            activateUserTab(selectedUser);
+        }
+
+    }
+
+    @FXML
+    void btnGroupsNewAction(ActionEvent event) {
+        String newGroupName = FxDialogs.showTextInput("Nuevo Grupo", "Introduce un nombre para el nuevo grupo");
+        if (newGroupName != null && newGroupName.length() > 0) {
+            ClientFacade.inst().requestNewGroup(newGroupName);
+        }
+    }
+
+    @FXML
+    void btnGroupsEnterAction(ActionEvent event) {
+        String selectedGroup = listViewGroups.getSelectionModel().getSelectedItem();
+        if (selectedGroup != null) {
+            activateGroupTab(selectedGroup);
+        }
+    }
+
+
+    @FXML
+    void btnGroupsRemoveAction(ActionEvent event) {
+
+    }
+
+    private void activateUserTab(String selectedUser) {
+        Tab tab;
+        if (openChats.containsKey(selectedUser)) {
+            tab = openChats.get(selectedUser).getTab();
+        } else {
+            ChatControl userChat = new ChatControl(selectedUser);
+            tab = userChat.getTab();
+            tab.setOnCloseRequest((a) -> openChats.remove(userChat.getTitle()));
+            openChats.put(selectedUser, userChat);
+            Platform.runLater(() -> tabPaneChats.getTabs().add(tab));
+        }
+        tabPaneChats.getSelectionModel().select(tab);
+    }
+
+    private void activateGroupTab(String selectedGroup) {
+        Tab tab;
+        if (openGroups.containsKey(selectedGroup)) {
+            tab = openGroups.get(selectedGroup).getTab();
+        } else {
+            ChatGroupControl groupChat = new ChatGroupControl(selectedGroup);
+            tab = groupChat.getTab();
+            tab.setOnCloseRequest((a) -> openGroups.remove(groupChat.getTitle()));
+            openGroups.put(selectedGroup, groupChat);
+            Platform.runLater(() -> tabPaneGroups.getTabs().add(tab));
+            ClientFacade.inst().requestJoinGroup(selectedGroup);
+        }
+        tabPaneGroups.getSelectionModel().select(tab);
+    }
+
     private void cleanUpChatPane() {
         Platform.runLater(() -> {
             tabChat.setDisable(true);
@@ -291,6 +309,8 @@ public class ClientControl {
             tabPaneGroups.getTabs().remove(1, tabPaneGroups.getTabs().size());
         });
     }
+
+    //Event Bus Subscription Methods
 
     @Subscribe
     void logOutput(String log) {
@@ -355,14 +375,14 @@ public class ClientControl {
 
     @Subscribe
     public void pmReceived(ClientPmEvent pmEvent) {
-        String tabKey;
+        String tabName;
         if (pmEvent.isAck()) {
-            tabKey = pmEvent.getDestiny();
+            tabName = pmEvent.getDestiny();
         } else {
-            tabKey = pmEvent.getOrigin();
+            tabName = pmEvent.getOrigin();
         }
-        activateTab(tabKey);
-        ChatControl chatControl = openChats.get(tabKey);
+        activateUserTab(tabName);
+        ChatControl chatControl = openChats.get(tabName);
         chatControl.newMessage(pmEvent.getOrigin(), pmEvent.getMessage());
     }
 }

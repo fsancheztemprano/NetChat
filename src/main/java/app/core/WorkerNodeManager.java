@@ -62,11 +62,8 @@ public class WorkerNodeManager extends AbstractNodeManager {
 
     //only AUTH_RESPONSE delivers sessionID, others return serverID
     @Override
-    public synchronized boolean queueTransmission(@Nonnull AppPacket appPacket) {
-        if (appPacket.getSignal() != ProtocolSignal.SERVER_RESPONSE_LOGIN_SUCCESS) {
-            appPacket.setAuth(serverID);
-        }
-        return super.queueTransmission(appPacket);
+    public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
+        super.queueTransmission(appPacket.setAuth(appPacket.getSignal() == ProtocolSignal.SERVER_RESPONSE_LOGIN_SUCCESS ? getSessionID() : serverID));
     }
 
 }

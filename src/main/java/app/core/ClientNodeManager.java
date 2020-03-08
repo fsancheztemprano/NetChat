@@ -75,9 +75,8 @@ public class ClientNodeManager extends AbstractNodeManager {
     }
 
     @Override
-    public synchronized boolean queueTransmission(@Nonnull AppPacket appPacket) {
-        appPacket.setAuth(getSessionID());
-        return super.queueTransmission(appPacket);
+    public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
+        super.queueTransmission(appPacket.setAuth(getSessionID()));
     }
 
     public void sendLogOutAction() {
@@ -99,5 +98,8 @@ public class ClientNodeManager extends AbstractNodeManager {
 
     public void requestNewGroup(String newGroupName) {
         queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_REQUEST_NEW_GROUP).setMessage(newGroupName));
+    }
+
+    public void requestJoinGroup(String selectedGroup) {
     }
 }

@@ -64,6 +64,6 @@ public class CommandTransmitter extends Activable implements Runnable {
     }
 
     public boolean queueCommandTransmission(AppPacket appPacket) {
-        return !outboundCommandQueue.contains(appPacket) && outboundCommandQueue.offer(appPacket);
+        return outboundCommandQueue.offer(appPacket);
     }
 }

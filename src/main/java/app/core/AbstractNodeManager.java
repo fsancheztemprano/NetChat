@@ -84,10 +84,6 @@ public abstract class AbstractNodeManager extends ActivableSocketManager {
         setOutputStream();
     }
 
-    public synchronized boolean queueTransmission(@Nonnull AppPacket appPacket) {
-        return commandTransmitter.queueCommandTransmission(appPacket);
-    }
-
     public boolean isSocketOpen() {
         return managedSocket != null && !managedSocket.isClosed();
     }
@@ -135,7 +131,6 @@ public abstract class AbstractNodeManager extends ActivableSocketManager {
         }
     }
 
-
     protected void poolUpChildProcesses() {
         managerPool.submit(commandProcessor);
         managerPool.submit(commandTransmitter);
@@ -154,7 +149,6 @@ public abstract class AbstractNodeManager extends ActivableSocketManager {
             commandProcessor.setActive(false);
     }
 
-
     public void updateHeartbeatDaemonTime() { //TODO change to EventBus
         heartbeatDaemon.updateHeartBeatTime();
     }
@@ -163,4 +157,7 @@ public abstract class AbstractNodeManager extends ActivableSocketManager {
 
     public abstract void stopSocketManager();
 
+    public synchronized void queueTransmission(@Nonnull AppPacket appPacket) {
+        new Thread(() -> commandTransmitter.queueCommandTransmission(appPacket)).start();
+    }
 }
