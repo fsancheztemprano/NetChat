@@ -22,7 +22,7 @@ public class ClientCommandProcessor extends AbstractCommandProcessor {
                 socketManager.setSessionID(appPacket.getAuth());
                 socketManager.getSocketEventBus().post(new ClientLoginResponseEvent(appPacket.getAuth()));
                 break;
-            case BROADCAST_USER_LIST:
+            case SERVER_SEND_USER_LIST:
                 socketManager.getSocketEventBus().post(new ClientUserListEvent(appPacket.getList()));
                 break;
             case CLIENT_PM:

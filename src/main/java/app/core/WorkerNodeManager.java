@@ -60,7 +60,7 @@ public class WorkerNodeManager extends AbstractNodeManager {
     }
 
     public void sendAuthApproval(boolean approved) {
-        AppPacket authResponsePacket = new AppPacket(ProtocolSignal.AUTH_RESPONSE);
+        AppPacket authResponsePacket = AppPacket.ofType(ProtocolSignal.AUTH_RESPONSE);
         authResponsePacket.setAuth(approved ? getSessionID() : -1);
         queueTransmission(authResponsePacket);
     }

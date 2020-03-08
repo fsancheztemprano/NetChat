@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class AppPacket implements Serializable, Cloneable {
 
-    private ProtocolSignal signal;
+    private final ProtocolSignal signal;
     private SocketAddress originSocketAddress;
     private long auth;
 
@@ -21,7 +21,11 @@ public class AppPacket implements Serializable, Cloneable {
 
     private transient AbstractNodeManager handler;
 
-    public AppPacket(ProtocolSignal signal) {
+    public static AppPacket ofType(ProtocolSignal protocolSignal) {
+        return new AppPacket(protocolSignal);
+    }
+
+    private AppPacket(ProtocolSignal signal) {
         this.signal = signal;
     }
 
@@ -29,72 +33,76 @@ public class AppPacket implements Serializable, Cloneable {
         return signal;
     }
 
-    public void setSignal(ProtocolSignal signal) {
-        this.signal = signal;
-    }
-
     public SocketAddress getOriginSocketAddress() {
         return originSocketAddress;
-    }
-
-    public void setOriginSocketAddress(SocketAddress originSocketAddress) {
-        this.originSocketAddress = originSocketAddress;
     }
 
     public long getAuth() {
         return auth;
     }
 
-    public void setAuth(long auth) {
-        this.auth = auth;
-    }
-
     public String getUsername() {
         return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getDestiny() {
         return destiny;
-    }
-
-    public void setDestiny(String destiny) {
-        this.destiny = destiny;
     }
 
     public String getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
     public AbstractNodeManager getHandler() {
         return handler;
-    }
-
-    public void setHandler(AbstractNodeManager handler) {
-        this.handler = handler;
     }
 
     public String[] getList() {
         return list;
     }
 
-    public void setList(String[] list) {
+    public AppPacket setOriginSocketAddress(SocketAddress originSocketAddress) {
+        this.originSocketAddress = originSocketAddress;
+        return this;
+    }
+
+    protected AppPacket setAuth(long auth) {
+        this.auth = auth;
+        return this;
+    }
+
+    public AppPacket setUsername(String username) {
+        this.username = username;
+        return this;
+    }
+
+    public AppPacket setPassword(String password) {
+        this.password = password;
+        return this;
+    }
+
+    public AppPacket setDestiny(String destiny) {
+        this.destiny = destiny;
+        return this;
+    }
+
+    public AppPacket setMessage(String message) {
+        this.message = message;
+        return this;
+    }
+
+    public AppPacket setHandler(AbstractNodeManager handler) {
+        this.handler = handler;
+        return this;
+    }
+
+    public AppPacket setList(String[] list) {
         this.list = list;
+        return this;
     }
 
     @Override
@@ -155,7 +163,9 @@ public class AppPacket implements Serializable, Cloneable {
 
         CLIENT_REQUEST_NEW_GROUP,
 
-        BROADCAST_USER_LIST,
-        BROADCAST_GROUP_LIST
+        SERVER_SEND_USER_LIST,
+        SERVER_SEND_GROUP_LIST,
+
+        SERVER_RESPONSE_NEW_GROUP_DENIED
     }
 }

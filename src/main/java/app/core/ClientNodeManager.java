@@ -70,10 +70,7 @@ public class ClientNodeManager extends AbstractNodeManager {
         if (username.length() < 4 || password.length() < 4)
             return;
         String hashedPass = HashTools.getSha256(password);
-        AppPacket loginRequest = new AppPacket(ProtocolSignal.CLIENT_LOGIN_REQUEST);
-        loginRequest.setUsername(username);
-        loginRequest.setPassword(hashedPass);
-        queueTransmission(loginRequest);
+        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_LOGIN_REQUEST).setUsername(username).setPassword(hashedPass));
     }
 
     @Override
@@ -83,28 +80,23 @@ public class ClientNodeManager extends AbstractNodeManager {
     }
 
     public void sendLogOutAction() {
-        queueTransmission(new AppPacket(ProtocolSignal.CLIENT_LOGOUT_REQUEST));
+        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_LOGOUT_REQUEST));
         setSessionID(-1);
     }
 
     public void sendUserListRequest() {
-        queueTransmission(new AppPacket(ProtocolSignal.CLIENT_REQUEST_USER_LIST));
+        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_REQUEST_USER_LIST));
     }
 
     public void sendGroupListRequest() {
-        queueTransmission(new AppPacket(ProtocolSignal.CLIENT_REQUEST_GROUP_LIST));
+        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_REQUEST_GROUP_LIST));
     }
 
     public void sendPM(String username, String message) {
-        AppPacket pmPacket = new AppPacket(ProtocolSignal.CLIENT_PM);
-        pmPacket.setDestiny(username);
-        pmPacket.setMessage(message);
-        queueTransmission(pmPacket);
+        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_PM).setDestiny(username).setMessage(message));
     }
 
     public void requestNewGroup(String newGroupName) {
-        AppPacket newGroupRequest = new AppPacket(ProtocolSignal.CLIENT_REQUEST_NEW_GROUP);
-        newGroupRequest.setMessage(newGroupName);
-        queueTransmission(newGroupRequest);
+        queueTransmission(AppPacket.ofType(ProtocolSignal.CLIENT_REQUEST_NEW_GROUP).setMessage(newGroupName));
     }
 }

@@ -1,10 +1,10 @@
 package app.core;
 
 import app.core.AppPacket.ProtocolSignal;
+import app.core.events.WorkerGroupListEvent;
 import app.core.events.WorkerLoginEvent;
 import app.core.events.WorkerPrivateMessageEvent;
-import app.core.events.WorkerRequestEvent;
-import app.core.events.WorkerRequestEvent.RequestType;
+import app.core.events.WorkerUserListEvent;
 import com.google.common.eventbus.EventBus;
 
 public class WorkerCommandProcessor extends AbstractCommandProcessor {
@@ -29,16 +29,19 @@ public class WorkerCommandProcessor extends AbstractCommandProcessor {
                     serverEventBus.post(new WorkerLoginEvent((WorkerNodeManager) appPacket.getHandler()));
                     break;
                 case CLIENT_REQUEST_USER_LIST:
-                    serverEventBus.post(new WorkerRequestEvent((WorkerNodeManager) appPacket.getHandler(), RequestType.USER_LIST_REQUEST));
+                    serverEventBus.post(new WorkerUserListEvent((WorkerNodeManager) appPacket.getHandler()));
                     break;
                 case CLIENT_REQUEST_GROUP_LIST:
-                    serverEventBus.post(new WorkerRequestEvent((WorkerNodeManager) appPacket.getHandler(), RequestType.GROUP_LIST_REQUEST));
+                    serverEventBus.post(new WorkerGroupListEvent((WorkerNodeManager) appPacket.getHandler()));
                     break;
                 case CLIENT_PM:
                     serverEventBus.post(new WorkerPrivateMessageEvent((WorkerNodeManager) appPacket.getHandler(), appPacket.getDestiny(), appPacket.getMessage()));
                     break;
+                case CLIENT_REQUEST_NEW_GROUP:
+//                    serverEventBus.post(new );
+                    break;
                 default:
-                    socketManager.queueTransmission(new AppPacket(ProtocolSignal.UNAUTHORIZED_REQUEST));
+                    socketManager.queueTransmission(AppPacket.ofType(ProtocolSignal.UNAUTHORIZED_REQUEST));
                     break;
             }
         }

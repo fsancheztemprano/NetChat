@@ -8,7 +8,7 @@ import tools.log.Flogger;
 public class HeartbeatDaemon extends Activable implements Runnable {
 
     private final AbstractNodeManager manager;
-    private final AppPacket heartbeatPacket = new AppPacket(ProtocolSignal.HEARTBEAT);
+    private final AppPacket heartbeatPacket = AppPacket.ofType(ProtocolSignal.HEARTBEAT);
     private LocalDateTime lastHeartbeat;
 
     public HeartbeatDaemon(AbstractNodeManager socketManager) {

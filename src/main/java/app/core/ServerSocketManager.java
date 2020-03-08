@@ -159,10 +159,9 @@ public class ServerSocketManager extends ActivableSocketManager implements Runna
     }
 
     public void queueServerBroadcast(String message) {
-        AppPacket newMessage = new AppPacket(ProtocolSignal.SERVER_BROADCAST);
-        newMessage.setUsername("SERVER");
-        newMessage.setMessage(message);
-        broadcast(newMessage);
+        broadcast(AppPacket.ofType(ProtocolSignal.SERVER_BROADCAST)
+                           .setUsername("SERVER")
+                           .setMessage(message));
     }
 
     public void sendAuthApproval(final long sessionID, final boolean validated) {
