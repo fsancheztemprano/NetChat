@@ -3,19 +3,23 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
-<TabPane fx:id="tabPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chat.ui.ClientControl">
+<?import javafx.scene.text.Font?>
+<TabPane fx:id="tabPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.ui.ClientControl">
   <tabs>
-    <Tab fx:id="tabConnect" text="Conexion">
+    <Tab fx:id="tabConnect" closable="false" text="Conexion">
       <content>
         <VBox alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" spacing="10.0">
           <children>
@@ -51,6 +55,122 @@
         </VBox>
       </content>
     </Tab>
-    <Tab fx:id="tabClient" disable="true" text="Chat" />
+    <Tab fx:id="tabLogin" closable="false" text="Login">
+      <content>
+        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
+          <children>
+            <Label text="Login">
+              <font>
+                <Font size="24.0" />
+              </font>
+            </Label>
+            <Label text="Username" />
+            <TextField fx:id="fieldLoginUsername" onAction="#btnLoginAction" text="admin" />
+            <Label text="Password" />
+            <PasswordField fx:id="fieldLoginPassword" onAction="#btnLoginAction" text="admin" />
+            <Button fx:id="btnLogin" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnLoginAction" text="Log In" VBox.vgrow="ALWAYS" />
+            <Button fx:id="btnLogOut" contentDisplay="RIGHT" layoutX="20.0" layoutY="189.0" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnLogOutAction" text="Log Out" />
+          </children>
+          <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+          </padding>
+        </VBox>
+      </content>
+    </Tab>
+    <Tab fx:id="tabChat" closable="false" text="Chat">
+      <content>
+        <BorderPane fx:id="chatMenuPane">
+          <top>
+            <GridPane hgap="4.0" BorderPane.alignment="CENTER">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+              <children>
+                <Button fx:id="btnNavGroups" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnNavGroupsAction" text="Groups" GridPane.columnIndex="1">
+                  <GridPane.margin>
+                    <Insets />
+                  </GridPane.margin>
+                </Button>
+                <Button fx:id="btnNavChats" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#btnNavChatsAction" text="Chats">
+                  <GridPane.margin>
+                    <Insets />
+                  </GridPane.margin>
+                </Button>
+              </children>
+              <padding>
+                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+              </padding>
+            </GridPane>
+          </top>
+          <right>
+            <TabPane fx:id="tabPaneGroups" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="ALL_TABS" BorderPane.alignment="CENTER">
+              <tabs>
+                <Tab fx:id="tabGroupsList" closable="false" text="Groups">
+                  <content>
+                    <BorderPane>
+                      <center>
+                        <ListView fx:id="listViewGroups" prefHeight="200.0" prefWidth="200.0">
+                          <BorderPane.margin>
+                            <Insets left="6.0" right="6.0" top="6.0" />
+                          </BorderPane.margin>
+                        </ListView>
+                      </center>
+                      <bottom>
+                        <HBox alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="8.0" BorderPane.alignment="CENTER_RIGHT">
+                          <children>
+                            <Button fx:id="btnGroupsRemove" layoutX="110.0" layoutY="18.0" mnemonicParsing="false" onAction="#btnGroupsRemoveAction" text="Remove" />
+                            <Button fx:id="btnGroupsNew" mnemonicParsing="false" onAction="#btnGroupsNewAction" text="New" />
+                            <Button fx:id="btnGroupsEnter" layoutX="158.0" layoutY="18.0" mnemonicParsing="false" onAction="#btnGroupsEnterAction" text="Enter" />
+                          </children>
+                          <padding>
+                            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                          </padding>
+                        </HBox>
+                      </bottom>
+                    </BorderPane>
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+          </right>
+          <left>
+            <TabPane fx:id="tabPaneChats" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="ALL_TABS" BorderPane.alignment="CENTER">
+              <tabs>
+                <Tab fx:id="tabUsersList" closable="false" text="Users">
+                  <content>
+                    <BorderPane prefHeight="200.0" prefWidth="200.0">
+                      <bottom>
+                        <HBox alignment="CENTER_RIGHT" spacing="8.0" BorderPane.alignment="CENTER">
+                          <children>
+                            <Button fx:id="btnOpenChat" mnemonicParsing="false" onAction="#btnOpenChatAction" text="Open Chat" />
+                          </children>
+                          <BorderPane.margin>
+                            <Insets />
+                          </BorderPane.margin>
+                          <padding>
+                            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                          </padding>
+                        </HBox>
+                      </bottom>
+                      <center>
+                        <ListView fx:id="listViewUsers" prefHeight="200.0" prefWidth="200.0">
+                          <BorderPane.margin>
+                            <Insets left="6.0" right="6.0" top="6.0" />
+                          </BorderPane.margin>
+                        </ListView>
+                      </center>
+                    </BorderPane>
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
+          </left>
+        </BorderPane>
+      </content>
+    </Tab>
   </tabs>
 </TabPane>

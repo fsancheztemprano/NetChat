@@ -1,9 +1,8 @@
-import chat.ui.MainUI;
-import java.net.UnknownHostException;
+import app.MainUI;
 
 public class App {
 
-    public static void main(String[] args) throws UnknownHostException {
+    public static void main(String[] args) {
         MainUI.main(args);
     }
 }
