@@ -33,6 +33,8 @@ public abstract class AbstractChatControl extends VBox {
     public AbstractChatControl(String title) {
         this.title = title;
         this.tab   = new Tab(title);
+        this.tab.setClosable(true);
+        this.tab.setContent(this);
     }
 
     @FXML

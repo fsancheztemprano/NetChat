@@ -1,16 +1,24 @@
 package app.ui;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener.Change;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
 import tools.log.Flogger;
 
 public class ChatGroupControl extends AbstractChatControl {
 
     @FXML
-    private ListView<String> listViewUserList;
+    private ListView<String> listViewGroupUserList;
+    private final ObservableSet<String> groupUsersObservableSet = FXCollections.observableSet();
 
     {
         try {
@@ -31,12 +39,29 @@ public class ChatGroupControl extends AbstractChatControl {
     @Override
     protected void initialize() {
         super.initialize();
-        assert listViewUserList != null : "fx:id=\"listViewUserList\" was not injected: check your FXML file 'ChatGroupPane.fxml'.";
+        assert listViewGroupUserList != null : "fx:id=\"listViewUserList\" was not injected: check your FXML file 'ChatGroupPane.fxml'.";
+        listViewGroupUserList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        groupUsersObservableSet.addListener((Change<? extends String> c) -> {
+            if (c.wasAdded()) {
+                listViewGroupUserList.getItems().add(c.getElementAdded());
+            }
+            if (c.wasRemoved()) {
+                listViewGroupUserList.getItems().remove(c.getElementRemoved());
+            }
+        });
     }
 
     @FXML
     @Override
     public void sendMessageAction(ActionEvent event) {
 
+    }
+
+    public void groupUserListUpdate(String[] userList) {
+        Platform.runLater(() -> {
+            List<String> list = Arrays.asList(userList);
+            groupUsersObservableSet.addAll(list);
+            groupUsersObservableSet.retainAll(list);
+        });
     }
 }

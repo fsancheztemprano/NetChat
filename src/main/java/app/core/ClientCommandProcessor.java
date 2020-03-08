@@ -2,6 +2,7 @@ package app.core;
 
 import app.core.events.ClientAlertEvent;
 import app.core.events.ClientGroupListEvent;
+import app.core.events.ClientGroupUserListEvent;
 import app.core.events.ClientLoginSuccessEvent;
 import app.core.events.ClientPmEvent;
 import app.core.events.ClientUserListEvent;
@@ -42,6 +43,8 @@ public class ClientCommandProcessor extends AbstractCommandProcessor {
             case SERVER_SEND_GROUP_LIST:
                 eventBus.post(new ClientGroupListEvent(appPacket.getList()));
                 break;
+            case SERVER_SEND_GROUP_USER_LIST:
+                eventBus.post(new ClientGroupUserListEvent(appPacket.getDestiny(), appPacket.getList()));
             default:
                 eventBus.post(appPacket.getSignal().toString());
                 break;

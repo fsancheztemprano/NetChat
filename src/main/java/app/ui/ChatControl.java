@@ -23,8 +23,6 @@ public class ChatControl extends AbstractChatControl {
 
     public ChatControl(String title) {
         super(title);
-        tab.setClosable(true);
-        tab.setContent(this);
     }
 
     @FXML
@@ -41,8 +39,6 @@ public class ChatControl extends AbstractChatControl {
             ClientFacade.inst().sendPM(title, draft);
 
     }
-
-
 
     public void newMessage(String origin, String message) {
         areaChatLog.appendText(origin + ": " + message + "\n");

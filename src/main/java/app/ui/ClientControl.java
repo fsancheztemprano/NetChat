@@ -3,6 +3,7 @@ package app.ui;
 import app.core.ClientFacade;
 import app.core.events.ClientAlertEvent;
 import app.core.events.ClientGroupListEvent;
+import app.core.events.ClientGroupUserListEvent;
 import app.core.events.ClientLoginSuccessEvent;
 import app.core.events.ClientPmEvent;
 import app.core.events.ClientUserListEvent;
@@ -292,7 +293,10 @@ public class ClientControl {
         } else {
             ChatGroupControl groupChat = new ChatGroupControl(selectedGroup);
             tab = groupChat.getTab();
-            tab.setOnCloseRequest((a) -> openGroups.remove(groupChat.getTitle()));
+            tab.setOnCloseRequest((a) -> {
+                openGroups.remove(groupChat.getTitle());
+//                ClientFacade.inst().requestQuitGroup(selectedGroup);         TODO
+            });
             openGroups.put(selectedGroup, groupChat);
             Platform.runLater(() -> tabPaneGroups.getTabs().add(tab));
             ClientFacade.inst().requestJoinGroup(selectedGroup);
@@ -384,5 +388,13 @@ public class ClientControl {
         activateUserTab(tabName);
         ChatControl chatControl = openChats.get(tabName);
         chatControl.newMessage(pmEvent.getOrigin(), pmEvent.getMessage());
+    }
+
+    @Subscribe
+    public void groupUserListReceived(ClientGroupUserListEvent groupUserListEvent) {
+        String groupName = groupUserListEvent.getGroupName();
+        activateGroupTab(groupName);
+        ChatGroupControl groupControl = openGroups.get(groupName);
+        groupControl.groupUserListUpdate(groupUserListEvent.getUserList());
     }
 }

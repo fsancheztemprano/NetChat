@@ -14,7 +14,7 @@
     <SplitPane dividerPositions="0.8" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
       <items>
         <TextArea fx:id="areaChatLog" editable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0" />
-        <ListView fx:id="listViewUserList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0" />
+        <ListView fx:id="listViewGroupUserList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0" />
       </items>
     </SplitPane>
     <HBox alignment="CENTER_LEFT" spacing="10.0">

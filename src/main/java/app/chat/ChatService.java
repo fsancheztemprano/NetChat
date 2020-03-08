@@ -1,6 +1,7 @@
 package app.chat;
 
 import app.core.ServerSocketManager;
+import app.core.events.WorkerGroupListEvent;
 import app.core.events.WorkerJoinGroupEvent;
 import app.core.events.WorkerLoginEvent;
 import app.core.events.WorkerLogoutEvent;
@@ -12,6 +13,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.eventbus.Subscribe;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -83,7 +85,9 @@ public class ChatService {
 
     private String[] getGroupUserList(String groupName) {
         return groupsMultimap.get(groupName).stream()
-                             .map(l -> sessionMap.get(l).getUsername())
+                             .map(sessionMap::get)
+                             .filter(Objects::nonNull)
+                             .map(User::getUsername)
                              .distinct()
                              .toArray(String[]::new);
     }
@@ -134,8 +138,8 @@ public class ChatService {
     }
 
     @Subscribe
-    public void groupListRequest(WorkerUserListEvent workerUserListEvent) {
-        transmitGroupList(workerUserListEvent.getSessionID());
+    public void groupListRequest(WorkerGroupListEvent groupListEvent) {
+        transmitGroupList(groupListEvent.getSessionID());
     }
 
     @Subscribe
