@@ -2,6 +2,7 @@ package app.ui;
 
 import app.core.ClientFacade;
 import app.core.events.ClientAlertEvent;
+import app.core.events.ClientGroupListEvent;
 import app.core.events.ClientLoginSuccessEvent;
 import app.core.events.ClientPmEvent;
 import app.core.events.ClientUserListEvent;
@@ -101,9 +102,6 @@ public class ClientControl {
     private Tab tabGroupsList;
 
     @FXML
-    private ListView<String> listViewGroups;
-
-    @FXML
     private Button btnGroupsRemove;
 
     @FXML
@@ -124,7 +122,11 @@ public class ClientControl {
     @FXML
     private ListView<String> listViewUsers;
 
+    @FXML
+    private ListView<String> listViewGroups;
+
     private final ObservableSet<String> usersObservableSet = FXCollections.observableSet();
+    private final ObservableSet<String> groupsObservableSet = FXCollections.observableSet();
 
     private final HashMap<String, ChatControl> openChats = new HashMap<>();
 
@@ -173,6 +175,14 @@ public class ClientControl {
             }
             if (c.wasRemoved()) {
                 listViewUsers.getItems().remove(c.getElementRemoved());
+            }
+        });
+        groupsObservableSet.addListener((Change<? extends String> c) -> {
+            if (c.wasAdded()) {
+                listViewGroups.getItems().add(c.getElementAdded());
+            }
+            if (c.wasRemoved()) {
+                listViewGroups.getItems().remove(c.getElementRemoved());
             }
         });
 
@@ -331,6 +341,15 @@ public class ClientControl {
             List<String> list = Arrays.asList(userListEvent.getUserList());
             usersObservableSet.addAll(list);
             usersObservableSet.retainAll(list);
+        });
+    }
+
+    @Subscribe
+    public void groupListReceived(ClientGroupListEvent groupListEvent) {
+        Platform.runLater(() -> {
+            List<String> list = Arrays.asList(groupListEvent.getGroupList());
+            groupsObservableSet.addAll(list);
+            groupsObservableSet.retainAll(list);
         });
     }
 
