@@ -101,4 +101,10 @@ public class ClientNodeManager extends AbstractNodeManager {
         pmPacket.setMessage(message);
         queueTransmission(pmPacket);
     }
+
+    public void requestNewGroup(String newGroupName) {
+        AppPacket newGroupRequest = new AppPacket(ProtocolSignal.CLIENT_REQUEST_NEW_GROUP);
+        newGroupRequest.setMessage(newGroupName);
+        queueTransmission(newGroupRequest);
+    }
 }

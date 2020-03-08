@@ -231,7 +231,10 @@ public class ClientControl {
 
     @FXML
     void btnGroupsNewAction(ActionEvent event) {
-
+        String newGroupName = FxDialogs.showTextInput("Nuevo Grupo", "Introduce un nombre para el nuevo grupo");
+        if (newGroupName != null && newGroupName.length() > 0) {
+            ClientFacade.inst().requestNewGroup(newGroupName);
+        }
     }
 
     @FXML
